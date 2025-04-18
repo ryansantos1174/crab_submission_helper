@@ -20,7 +20,3 @@ def sendEmail(email_address:str, email_recipient:str,
 
     server.quit()
 
-
-if __name__ == "__main__":
-    sendEmail("ryansantos1174@gmail.com", "ryanddls1174@gmail.com",
-              "zciv vyky dbic tmnz", "Hello", "Test")
