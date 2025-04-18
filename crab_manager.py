@@ -1,9 +1,11 @@
+#!/usr/bin/env python3 
 import os
 import sys
 import subprocess
 import re
 import notification
 import argparse
+import logging
 
 class CrabHandler():
     def __init__(self, log_dir:str, directory:str):
@@ -73,10 +75,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--env-file", type=str, default=".env", help="Path to the .env file (default: .env)"
     )
+    parser.add_argument('function', required=True, default="status", help="Which command to run. Either status, resubmit, or submit")
 
     args = parser.parse_args()
     handler = CrabHandler(args.log_dir, args.crab_dir)
-    # Load environment variables if provided
-    handler.load_env_file(args.env_file)
     # Get CRAB job status
+
+    if args.function == "status":
+        handler.get_status()
+    elif args.function == "resubmit":
+        logging.error("Resubmit has not been implemented yet")
+    elif args.function == "submit":
+        logging.error("Submit has not been implemented yet")
+        
+        
     handler.get_status()
