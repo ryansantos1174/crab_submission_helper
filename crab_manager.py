@@ -48,8 +48,12 @@ class CrabHandler():
             for subdir, num_failed, exit_code_summary in resubmission_info:
                 f.write(f"{subdir},{num_failed},{exit_code_summary}\n")
 
-    def load_env(self, filepath=".env"):
-        with open(filepath) as f:
+    def load_env_file(self, filepath):
+        # Get directory of the current script file
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        env_path = os.path.join(script_dir, filepath)
+
+        with open(env_path) as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith("#"):
@@ -57,7 +61,6 @@ class CrabHandler():
                 if "=" in line:
                     key, value = line.split("=", 1)
                     os.environ[key.strip()] = value.strip()
-
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="CRAB job status and resubmission handler.")
@@ -74,6 +77,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     handler = CrabHandler(args.log_dir, args.crab_dir)
     # Load environment variables if provided
-    handler.load_env(args.env_file)
+    handler.load_env_file(args.env_file)
     # Get CRAB job status
     handler.get_status()
