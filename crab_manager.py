@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import subprocess
+import csv
 
 from tqdm import tqdm
 
@@ -11,9 +12,31 @@ import notification
 
 
 class CrabHandler():
+    ERROR_CODES = {"Memory Usage Error" : "50660"}
+
+
     def __init__(self, log_dir:str, directory:str):
         self.temp_log_directory= log_dir
         self.crab_directory = directory
+
+    def submit(self, input_file:str):
+        with open(input_file) as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                if self.ERROR_CODES["Memory Usage Error"] not in row:
+                    subprocess.run(
+                        ["crab", "resubmit", "-d", row[0]],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True)
+                    output = result.stdout
+                    logging.debug(f"crab resubmit output: {output}")
+        
+            
+            
+
+
+
 
     def get_status(self):
         resubmission_info = []
@@ -83,6 +106,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--log_level", type=str, default="WARNING", help="Logging level of script (WARNING, ERROR, INFO, DEBUG)")
 
+    parser.add_argument("--resubmission_file", type=str, help=("Path to file containing jobs to"
+                                                               "resubmit produced by the status command"))
+
     parser.add_argument('function', default="status", help="Which command to run. Either status, resubmit, or submit")
 
     args = parser.parse_args()
@@ -100,5 +126,5 @@ if __name__ == "__main__":
     elif args.function == "resubmit":
         logging.error("Resubmit has not been implemented yet")
     elif args.function == "submit":
-        logging.error("Submit has not been implemented yet")
+        handler.submit(
         
