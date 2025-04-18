@@ -24,8 +24,9 @@ class CrabHandler():
             reader = csv.reader(csvfile)
             for row in tqdm(reader):
                 if self.ERROR_CODES["Memory Usage Error"] not in row:
+                    full_path = os.path.join(self.crab_directory, row[0])
                     result = subprocess.run(
-                        ["crab", "resubmit", "-d", row[0]],
+                        ["crab", "resubmit", "-d", full_path],
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         text=True)
