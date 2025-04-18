@@ -29,6 +29,7 @@ class CrabHandler():
             )
 
             output = result.stdout
+            logging.debug(f"'crab_status' output: {output}")
 
             # Parse job states
             job_state_matches = re.findall(r"(\w+)\s+[\d\.]+%\s+\(\s*(\d+)/\d+\)", output)
@@ -37,7 +38,7 @@ class CrabHandler():
             # Skip active jobs
             non_terminal_states = {"idle", "running", "transferring", "unsubmitted"}
             if any(job_states.get(state, 0) > 0 for state in non_terminal_states):
-                print(f"Skipping {subdir}: jobs still active.")
+                logging.info(f"Skipping {subdir}: jobs still active.")
                 continue
 
             num_failed = job_states.get("failed", 0)
@@ -46,7 +47,7 @@ class CrabHandler():
                 code_matches = re.findall(r"(\d+)\s+jobs failed with exit code (\d+)", output)
                 # Build a string like: "50660:3;8021:7"
                 exit_code_summary = ";".join(f"{code}:{count}" for count, code in code_matches)
-                print(f"{subdir}: {num_failed} failed jobs with exit codes: {exit_code_summary}")
+                logging.info(f"{subdir}: {num_failed} failed jobs with exit codes: {exit_code_summary}")
                 resubmission_info.append((subdir, num_failed, exit_code_summary))
 
         # Save results
