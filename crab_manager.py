@@ -46,3 +46,13 @@ class CrabHandler():
         with open("resubmit_candidates.txt", "w") as f:
             for subdir, num_failed, exit_code_summary in resubmission_info:
                 f.write(f"{subdir},{num_failed},{exit_code_summary}\n")
+
+    def load_env(filepath=".env"):
+        with open(filepath) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    os.environ[key.strip()] = value.strip()
