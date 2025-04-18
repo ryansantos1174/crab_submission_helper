@@ -47,7 +47,7 @@ class CrabHandler():
             for subdir, num_failed, exit_code_summary in resubmission_info:
                 f.write(f"{subdir},{num_failed},{exit_code_summary}\n")
 
-    def load_env(filepath=".env"):
+    def load_env(self, filepath=".env"):
         with open(filepath) as f:
             for line in f:
                 line = line.strip()
@@ -56,3 +56,9 @@ class CrabHandler():
                 if "=" in line:
                     key, value = line.split("=", 1)
                     os.environ[key.strip()] = value.strip()
+
+if __name__ == "__main__":
+    ch = CrabHandler(".", "Documents")
+    ch.load_env()
+    print(os.environ)
+    
