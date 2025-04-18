@@ -3,17 +3,18 @@ import sys
 import subprocess
 import re
 import notification
+import argparse
 
 class CrabHandler():
     def __init__(self, log_dir:str, directory:str):
         self.temp_log_directory= log_dir
         self.crab_directory = directory
 
-    def get_status(self, crab_directory):
+    def get_status(self):
         resubmission_info = []
 
-        for subdir in os.listdir(crab_directory):
-            full_path = os.path.join(crab_directory, subdir)
+        for subdir in os.listdir(self.crab_directory):
+            full_path = os.path.join(self.crab_directory, subdir)
             result = subprocess.run(
                 ["crab", "status", "--summary", "-d", full_path],
                 stdout=subprocess.PIPE,
@@ -58,7 +59,21 @@ class CrabHandler():
                     os.environ[key.strip()] = value.strip()
 
 if __name__ == "__main__":
-    ch = CrabHandler(".", "Documents")
-    ch.load_env()
-    print(os.environ)
     
+    parser = argparse.ArgumentParser(description="CRAB job status and resubmission handler.")
+    parser.add_argument(
+        "--log-dir", type=str, required=True, help="Path to the log directory"
+    )
+    parser.add_argument(
+        "--crab-dir", type=str, required=True, help="Path to the CRAB job directory"
+    )
+    parser.add_argument(
+        "--env-file", type=str, default=".env", help="Path to the .env file (default: .env)"
+    )
+
+    args = parser.parse_args()
+    handler = CrabHandler(args.log_dir, args.crab_dir)
+    # Load environment variables if provided
+    handler.load_env(args.env_file)
+    # Get CRAB job status
+    handler.get_status()
