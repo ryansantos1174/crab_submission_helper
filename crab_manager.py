@@ -101,5 +101,3 @@ if __name__ == "__main__":
     elif args.function == "submit":
         logging.error("Submit has not been implemented yet")
         
-        
-    handler.get_status()
