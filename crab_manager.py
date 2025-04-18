@@ -75,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--env-file", type=str, default=".env", help="Path to the .env file (default: .env)"
     )
-    parser.add_argument('function', required=True, default="status", help="Which command to run. Either status, resubmit, or submit")
+    parser.add_argument('function', default="status", help="Which command to run. Either status, resubmit, or submit")
 
     args = parser.parse_args()
     handler = CrabHandler(args.log_dir, args.crab_dir)
