@@ -1,11 +1,14 @@
 #!/usr/bin/env python3 
-import os
-import sys
-import subprocess
-import re
-import notification
 import argparse
 import logging
+import os
+import re
+import subprocess
+
+from tqdm import tqdm
+
+import notification
+
 
 class CrabHandler():
     def __init__(self, log_dir:str, directory:str):
@@ -15,7 +18,8 @@ class CrabHandler():
     def get_status(self):
         resubmission_info = []
 
-        for subdir in os.listdir(self.crab_directory):
+        for subdir in tqdm(os.listdir(self.crab_directory)):
+            logging.info(f"Running over {subdir}")
             full_path = os.path.join(self.crab_directory, subdir)
             result = subprocess.run(
                 ["crab", "status", "--summary", "-d", full_path],
