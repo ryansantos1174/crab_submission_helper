@@ -71,19 +71,28 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="CRAB job status and resubmission handler.")
     parser.add_argument(
-        "--log-dir", type=str, required=True, help="Path to the log directory"
+        "--log_dir", type=str, required=True, help="Path to the log directory"
     )
     parser.add_argument(
-        "--crab-dir", type=str, required=True, help="Path to the CRAB job directory"
+        "--crab_dir", type=str, required=True, help="Path to the CRAB job directory"
     )
     parser.add_argument(
-        "--env-file", type=str, default=".env", help="Path to the .env file (default: .env)"
+        "--env_file", type=str, default=".env", help="Path to the .env file (default: .env)"
     )
+    parser.add_argument(
+        "--log_level", type=str, default="WARNING", help="Logging level of script (WARNING, ERROR, INFO, DEBUG)")
+
     parser.add_argument('function', default="status", help="Which command to run. Either status, resubmit, or submit")
 
     args = parser.parse_args()
     handler = CrabHandler(args.log_dir, args.crab_dir)
     # Get CRAB job status
+
+    # Setting up logging
+    numeric_level = getattr(logging, args.log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.log_level)
+    logging.basicConfig(level=numeric_level)
 
     if args.function == "status":
         handler.get_status()
