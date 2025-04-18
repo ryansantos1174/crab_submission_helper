@@ -126,5 +126,5 @@ if __name__ == "__main__":
     elif args.function == "resubmit":
         logging.error("Resubmit has not been implemented yet")
     elif args.function == "submit":
-        handler.submit(
+        handler.submit(args.resubmission_file)
         
