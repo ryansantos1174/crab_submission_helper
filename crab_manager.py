@@ -22,9 +22,9 @@ class CrabHandler():
     def submit(self, input_file:str):
         with open(input_file) as csvfile:
             reader = csv.reader(csvfile)
-            for row in reader:
+            for row in tqdm(reader):
                 if self.ERROR_CODES["Memory Usage Error"] not in row:
-                    subprocess.run(
+                    result = subprocess.run(
                         ["crab", "resubmit", "-d", row[0]],
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
