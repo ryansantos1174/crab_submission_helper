@@ -1,6 +1,7 @@
 import subprocess
 import sys
 from typing import Optional
+import requests
 
 import pandas as pd
 
@@ -47,7 +48,16 @@ class CrabHandler():
 
     def check_error(self):
         ...
+
+    def prepare_for_local_submission(self):
+        ...
+
+    @staticmethod
+    def notify(topic:str = "ryan_crab", description:str = "Job Finished"):
+        requests.post(f"https://ntfy.sh/{topic}",
+        data=description.encode(encoding='utf-8'))
         
 
 if __name__ == "__main__":
-    crab_status("crab/crab_EGamma0_FiducialMap_2023C_v1")
+    ...
+    
