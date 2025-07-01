@@ -127,8 +127,8 @@ if __name__ == "__main__":
 
     parser.add_argument('command', choices=['run_local'])
     parser.add_argument('-d', '--crabDirectory')
-    parser.add_arguments('-c', '--configName', default="config.py")
-    parser.add_arguments('--testRun')
+    parser.add_argument('-c', '--configName', default="config.py")
+    parser.add_argument('--testRun')
     parser.add_argument('--year')
     parser.add_argument('--era')
     parser.add_argument('--isRealData')
