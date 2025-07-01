@@ -1,11 +1,12 @@
 import subprocess
+import textwrap
 import sys
+import os
 from typing import Optional
 import requests
 import json
 
 import pandas as pd
-
 
 class CrabHandler:
     bad_exit_codes: tuple = 50660
@@ -34,13 +35,12 @@ class CrabHandler:
         failed_ids = submitted_jobs[submitted_jobs["State"] == "failed"][
             ["JobIds", "SiteHistory"]
         ]
-        print(failed_ids)
-        latest_failed_ids = failed_ids["JobIds"].apply(lambda x: x[-1])
-        print(latest_failed_ids)
+        failed_ids["LatestJobId"] = failed_ids["JobIds"].apply(lambda x: x[-1])
+        failed_ids["LatestSite"] = failed_ids["SiteHistory"].apply(lambda x: x[-1])
 
-        self.resubmit_jobs = {key: {} for key in list(latest_failed_ids)}
+        #self.resubmit_jobs = {key: {} for key in list(latest_failed_ids)}
 
-        return latest_failed_ids
+        return failed_ids[["LatestJobId", "LatestSite"]]
 
     def check_location(self, submitted_jobs: pd.DataFrame):
         sites = submitted_jobs[["SiteHistory", "JobIds"]].value_counts().to_dict()
@@ -52,19 +52,33 @@ class CrabHandler:
 
     def check_error(self): ...
 
-    def prepare_for_local_submission(self, config_file_path: str, crab_directory: str):
+    @staticmethod
+    def process_failed_lumis_file(failed_lumis_file:str)->list[str]:
+        with open(failed_lumis_file) as f:
+            lumi_dict = json.load(f)
+
+        ranges = []
+        for run, ranges_list in lumi_dict.items():
+            for lumi_start, lumi_end in ranges_list:
+                if lumi_start == lumi_end:
+                    ranges.append(f"{run}:{lumi_start}")
+                else:
+                    ranges.append(f"{run}:{lumi_start}-{run}:{lumi_end}")
+        return ranges
+
+    def grab_failed_lumis_and_files(self, config_file_path: str, crab_directory: str)-> dict[str, str]:
         # Run Crab submit
         subprocess.run(f"crab report -d {crab_directory}", shell=True)
 
         with open(os.path.join(crab_directory, "failedLumis.json")) as file:
-            failed_lumis = json.load(file)
+            failed_lumis = self.process_failed_lumis_file(file)
         with open(os.path.join(crab_directory, "failedFiles.json")) as file:
-            failed_files = json.load(file)
+            failed_files = list(json.load(file).keys())
 
-        ...
+        return dict(lumiBlocks=failed_lumis, filenames=failed_files)
 
     def config_generator(self, filename: str, parameters: dict) -> None:
-        config_template = """
+        config_template = textwrap.dedent("""\
         from DisappTrks.BackgroundEstimation.config_cfg import *
         from DisappTrks.StandardAnalysis.customize import *
 
@@ -76,7 +90,7 @@ class CrabHandler:
 
         process.source.fileNames = cms.untracked.vstring({filenames})
         process.source.lumisToProcess=cms.untracked.VLuminosityBlockRange({lumiBlocks})
-        """.format(
+        """).format(
             year=parameters["year"],
             era=parameters["era"],
             isRealData=parameters["isRealData"],
@@ -98,4 +112,12 @@ class CrabHandler:
 
 
 if __name__ == "__main__":
-    ...
+    handler = CrabHandler()
+    handler.config_generator("test.py",
+        parameters = {
+            "year": "2022",
+            "era": "A",
+            "isRealData": True,
+            "filenames": '"file1.root", "file2.root"',
+            "lumiBlocks": '"123:1-123:100"',
+        })
