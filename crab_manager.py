@@ -5,6 +5,7 @@ import os
 from typing import Optional
 import requests
 import json
+import argparse
 
 import pandas as pd
 
@@ -114,16 +115,36 @@ class CrabHandler:
             f"https://ntfy.sh/{topic}", data=description.encode(encoding="utf-8")
         )
 
+    @staticmethod
+    def submit_cms_job(config_name:str='config.py'):
+        subprocess.run(f"cmsRun {config_name}",
+                        shell=True)
 
 if __name__ == "__main__":
-    handler = CrabHandler()
+    parser = argparse.ArgumentParser(prog='CrabManager',
+                                     description="Command-line utility to facilitate the submission of crab jobs"
+                                     )
 
-    values = handler.grab_failed_lumis_and_files(crab_directory="tests/", testing=True)
-    handler.config_generator("test.py",
-        parameters = {
-            "year": "2022",
-            "era": "A",
-            "isRealData": True,
-            "filenames": values["filenames"],
-            "lumiBlocks": values["lumiBlocks"],
-        })
+    parser.add_argument('command', choices=['run_local'])
+    parser.add_argument('-d', '--crabDirectory')
+    parser.add_arguments('-c', '--configName', default="config.py")
+    parser.add_arguments('--testRun')
+    parser.add_argument('--year')
+    parser.add_argument('--era')
+    parser.add_argument('--isRealData')
+
+    args = parser.parse_args()
+
+    if args.command == 'run_local':
+        handler = CrabHandler()
+        values = handler.grab_failed_lumis_and_files(crab_directory=args.crabDirectory)
+        handler.config_generator(args.configName,
+                                 parameters = {
+                                    "year": args.year,
+                                    "era" : args.era,
+                                    "isRealData": args.isRealData,
+                                    "filenames": values["filenames"],
+                                    "lumiBlocks": values["lumiBlocks"]})
+        CrabHandler.submit_cms_job(args.configName)
+    
+
