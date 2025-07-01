@@ -66,17 +66,21 @@ class CrabHandler:
                     ranges.append(f"{run}:{lumi_start}-{run}:{lumi_end}")
         return ranges
 
-    def grab_failed_lumis_and_files(self, config_file_path: str, crab_directory: str)-> dict[str, str]:
+    def grab_failed_lumis_and_files(self, crab_directory: str, testing=False)-> dict[str, str]:
         # Run Crab submit
-        subprocess.run(f"crab report -d {crab_directory}", shell=True)
+        if not testing: 
+            subprocess.run(f"crab report -d {crab_directory} --recovery=failed", shell=True)
 
-        with open(os.path.join(crab_directory, "failedLumis.json")) as file:
-            failed_lumis = self.process_failed_lumis_file(file)
+        file_path = os.path.join(crab_directory, "failedLumis.json")
+        failed_lumis = self.process_failed_lumis_file(file_path)
+
         with open(os.path.join(crab_directory, "failedFiles.json")) as file:
-            failed_files = list(json.load(file).keys())
+            failed_files_json = json.load(file)
+            failed_files = [path for paths in failed_files_json.values() for path in paths]
 
         return dict(lumiBlocks=failed_lumis, filenames=failed_files)
 
+    # TODO Fix this up to be more dynamic
     def config_generator(self, filename: str, parameters: dict) -> None:
         config_template = textwrap.dedent("""\
         from DisappTrks.BackgroundEstimation.config_cfg import *
@@ -94,8 +98,8 @@ class CrabHandler:
             year=parameters["year"],
             era=parameters["era"],
             isRealData=parameters["isRealData"],
-            filenames=parameters["filenames"],
-            lumiBlocks=parameters["lumiBlocks"],
+            filenames= ", ".join(f'"{x}"' for x in parameters["filenames"]),
+            lumiBlocks= ", ".join(f'"{x}"' for x in parameters["lumiBlocks"]),
         )
 
         with open(filename, "w") as file:
@@ -113,11 +117,13 @@ class CrabHandler:
 
 if __name__ == "__main__":
     handler = CrabHandler()
+
+    values = handler.grab_failed_lumis_and_files(crab_directory="tests/", testing=True)
     handler.config_generator("test.py",
         parameters = {
             "year": "2022",
             "era": "A",
             "isRealData": True,
-            "filenames": '"file1.root", "file2.root"',
-            "lumiBlocks": '"123:1-123:100"',
+            "filenames": values["filenames"],
+            "lumiBlocks": values["lumiBlocks"],
         })
