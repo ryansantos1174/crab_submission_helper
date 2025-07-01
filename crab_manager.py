@@ -72,10 +72,10 @@ class CrabHandler:
         if not testing: 
             subprocess.run(f"crab report -d {crab_directory} --recovery=failed", shell=True)
 
-        file_path = os.path.join(crab_directory, "failedLumis.json")
+        file_path = os.path.join(crab_directory, "results/failedLumis.json")
         failed_lumis = self.process_failed_lumis_file(file_path)
 
-        with open(os.path.join(crab_directory, "failedFiles.json")) as file:
+        with open(os.path.join(crab_directory, "results/failedFiles.json")) as file:
             failed_files_json = json.load(file)
             failed_files = [path for paths in failed_files_json.values() for path in paths]
 
