@@ -1,131 +1,150 @@
-#!/usr/bin/env python3 
-import argparse
-import logging
-import os
-import re
 import subprocess
-import csv
+import textwrap
+import sys
+import os
+from typing import Optional
+import requests
+import json
+import argparse
 
-from tqdm import tqdm
+import pandas as pd
 
-import notification
+class CrabHandler:
+    bad_exit_codes: tuple = 50660
+    site_chances: int = 5
 
+    resubmit_jobs: dict[int, dict] = None
+    directories: Optional[list[str]] = None
 
-class CrabHandler():
-    ERROR_CODES = {"Memory Usage Error" : "50660"}
+    def crab_status(self, crab_directory: str) -> pd.DataFrame:
+        # Submit crab status command on given crab directory
+        output = subprocess.run(
+            f"crab status -d {crab_directory} --json",
+            shell=True,
+            capture_output=True,
+            text=True,
+        ).stdout
 
+        start = output.find("{")
+        stop = output.find("Log")
+        # Remove last log file line and the head of the file
+        output = output[start:stop]
 
-    def __init__(self, log_dir:str, directory:str):
-        self.temp_log_directory= log_dir
-        self.crab_directory = directory
+        return pd.read_json(output).transpose()
 
-    def submit(self, input_file:str):
-        with open(input_file) as csvfile:
-            reader = csv.reader(csvfile)
-            for row in tqdm(reader):
-                if self.ERROR_CODES["Memory Usage Error"] not in row:
-                    full_path = os.path.join(self.crab_directory, row[0])
-                    result = subprocess.run(
-                        ["crab", "resubmit", "-d", full_path],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        text=True)
-                    output = result.stdout
-                    logging.debug(f"crab resubmit output: {output}")
-        
-            
-            
+    def get_failed_job_ids(self, submitted_jobs: pd.DataFrame) -> pd.DataFrame:
+        failed_ids = submitted_jobs[submitted_jobs["State"] == "failed"][
+            ["JobIds", "SiteHistory"]
+        ]
+        failed_ids["LatestJobId"] = failed_ids["JobIds"].apply(lambda x: x[-1])
+        failed_ids["LatestSite"] = failed_ids["SiteHistory"].apply(lambda x: x[-1])
 
+        #self.resubmit_jobs = {key: {} for key in list(latest_failed_ids)}
 
+        return failed_ids[["LatestJobId", "LatestSite"]]
 
+    def check_location(self, submitted_jobs: pd.DataFrame):
+        sites = submitted_jobs[["SiteHistory", "JobIds"]].value_counts().to_dict()
+        for (site, job_id), count in sites.items():
+            if count >= self.site_chances:
+                if job_id not in self.resubmit_jobs:
+                    self.resubmit_jobs[job_id] = {}
+                self.resubmit_jobs[job_id]["SiteBlacklist"] = site
 
-    def get_status(self):
-        resubmission_info = []
+    def check_error(self): ...
 
-        for subdir in tqdm(os.listdir(self.crab_directory)):
-            logging.info(f"Running over {subdir}")
-            full_path = os.path.join(self.crab_directory, subdir)
-            result = subprocess.run(
-                ["crab", "status", "--summary", "-d", full_path],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
+    @staticmethod
+    def process_failed_lumis_file(failed_lumis_file:str)->list[str]:
+        with open(failed_lumis_file) as f:
+            lumi_dict = json.load(f)
 
-            output = result.stdout
-            logging.debug(f"'crab_status' output: {output}")
+        ranges = []
+        for run, ranges_list in lumi_dict.items():
+            for lumi_start, lumi_end in ranges_list:
+                if lumi_start == lumi_end:
+                    ranges.append(f"{run}:{lumi_start}")
+                else:
+                    ranges.append(f"{run}:{lumi_start}-{run}:{lumi_end}")
+        return ranges
 
-            # Parse job states
-            job_state_matches = re.findall(r"(\w+)\s+[\d\.]+%\s+\(\s*(\d+)/\d+\)", output)
-            job_states = {state: int(count) for state, count in job_state_matches}
+    def grab_failed_lumis_and_files(self, crab_directory: str, testing=False)-> dict[str, str]:
+        # Run Crab submit
+        if not testing: 
+            subprocess.run(f"crab report -d {crab_directory} --recovery=failed", shell=True)
 
-            # Skip active jobs
-            non_terminal_states = {"idle", "running", "transferring", "unsubmitted"}
-            if any(job_states.get(state, 0) > 0 for state in non_terminal_states):
-                logging.info(f"Skipping {subdir}: jobs still active.")
-                continue
+        file_path = os.path.join(crab_directory, "results/failedLumis.json")
+        failed_lumis = self.process_failed_lumis_file(file_path)
 
-            num_failed = job_states.get("failed", 0)
-            if num_failed > 0:
-                # Find all exit codes
-                code_matches = re.findall(r"(\d+)\s+jobs failed with exit code (\d+)", output)
-                # Build a string like: "50660:3;8021:7"
-                exit_code_summary = ";".join(f"{code}:{count}" for count, code in code_matches)
-                logging.info(f"{subdir}: {num_failed} failed jobs with exit codes: {exit_code_summary}")
-                resubmission_info.append((subdir, num_failed, exit_code_summary))
+        with open(os.path.join(crab_directory, "results/failedFiles.json")) as file:
+            failed_files_json = json.load(file)
+            failed_files = [path for paths in failed_files_json.values() for path in paths]
 
-        # Save results
-        with open("resubmit_candidates.txt", "w") as f:
-            for subdir, num_failed, exit_code_summary in resubmission_info:
-                f.write(f"{subdir},{num_failed},{exit_code_summary}\n")
+        return dict(lumiBlocks=failed_lumis, filenames=failed_files)
 
-    def load_env_file(self, filepath):
-        # Get directory of the current script file
-        script_dir = os.path.dirname(os.path.realpath(__file__))
-        env_path = os.path.join(script_dir, filepath)
+    # TODO Fix this up to be more dynamic
+    def config_generator(self, filename: str, parameters: dict) -> None:
+        config_template = textwrap.dedent("""\
+        from DisappTrks.BackgroundEstimation.config_cfg import *
+        from DisappTrks.StandardAnalysis.customize import *
 
-        with open(env_path) as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                if "=" in line:
-                    key, value = line.split("=", 1)
-                    os.environ[key.strip()] = value.strip()
+        if not os.environ["CMSSW_VERSION"].startswith ("CMSSW_12_4_") and not os.environ["CMSSW_VERSION"].startswith ("CMSSW_13_0_"):
+            print("Please use a CMSSW_12_4_X or CMSSW_13_0_X release...")
+            sys.exit (0)
+
+        process = customize (process, "{year}", "{era}", realData={isRealData}, applyPUReweighting = False, applyISRReweighting = False, applyTriggerReweighting = False, applyMissingHitsCorrections = False, runMETFilters = False)
+
+        process.source.fileNames = cms.untracked.vstring({filenames})
+        process.source.lumisToProcess=cms.untracked.VLuminosityBlockRange({lumiBlocks})
+        """).format(
+            year=parameters["year"],
+            era=parameters["era"],
+            isRealData=parameters["isRealData"],
+            filenames= ", ".join(f'"{x}"' for x in parameters["filenames"]),
+            lumiBlocks= ", ".join(f'"{x}"' for x in parameters["lumiBlocks"]),
+        )
+
+        with open(filename, "w") as file:
+            file.write(config_template)
+
+        # Format code after writing
+        subprocess.run(["black", filename], check=True)
+
+    @staticmethod
+    def notify(topic: str = "ryan_crab", description: str = "Job Finished"):
+        requests.post(
+            f"https://ntfy.sh/{topic}", data=description.encode(encoding="utf-8")
+        )
+
+    @staticmethod
+    def submit_cms_job(config_name:str='config.py'):
+        subprocess.run(f"cmsRun {config_name}",
+                        shell=True)
+
 if __name__ == "__main__":
-    
-    parser = argparse.ArgumentParser(description="CRAB job status and resubmission handler.")
-    parser.add_argument(
-        "--log_dir", type=str, required=True, help="Path to the log directory"
-    )
-    parser.add_argument(
-        "--crab_dir", type=str, required=True, help="Path to the CRAB job directory"
-    )
-    parser.add_argument(
-        "--env_file", type=str, default=".env", help="Path to the .env file (default: .env)"
-    )
-    parser.add_argument(
-        "--log_level", type=str, default="WARNING", help="Logging level of script (WARNING, ERROR, INFO, DEBUG)")
+    parser = argparse.ArgumentParser(prog='CrabManager',
+                                     description="Command-line utility to facilitate the submission of crab jobs"
+                                     )
 
-    parser.add_argument("--resubmission_file", type=str, help=("Path to file containing jobs to"
-                                                               "resubmit produced by the status command"))
-
-    parser.add_argument('function', default="status", help="Which command to run. Either status, resubmit, or submit")
+    parser.add_argument('command', choices=['run_local'])
+    parser.add_argument('-d', '--crabDirectory')
+    parser.add_argument('-c', '--configName', default="config.py")
+    parser.add_argument('--testRun')
+    parser.add_argument('--year')
+    parser.add_argument('--era')
+    parser.add_argument('--isRealData')
 
     args = parser.parse_args()
-    handler = CrabHandler(args.log_dir, args.crab_dir)
-    # Get CRAB job status
 
-    # Setting up logging
-    numeric_level = getattr(logging, args.log_level.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % args.log_level)
-    logging.basicConfig(level=numeric_level)
+    if args.command == 'run_local':
+        handler = CrabHandler()
+        values = handler.grab_failed_lumis_and_files(crab_directory=args.crabDirectory)
+        handler.config_generator(args.configName,
+                                 parameters = {
+                                    "year": args.year,
+                                    "era" : args.era,
+                                    "isRealData": args.isRealData,
+                                    "filenames": values["filenames"],
+                                    "lumiBlocks": values["lumiBlocks"]})
+        CrabHandler.submit_cms_job(args.configName)
+    
 
-    if args.function == "status":
-        handler.get_status()
-    elif args.function == "resubmit":
-        logging.error("Resubmit has not been implemented yet")
-    elif args.function == "submit":
-        handler.submit(args.resubmission_file)
-        
