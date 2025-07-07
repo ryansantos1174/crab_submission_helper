@@ -9,6 +9,8 @@ import argparse
 
 import pandas as pd
 
+import generator as gen
+
 class CrabHandler:
     bad_exit_codes: tuple = 50660
     site_chances: int = 5
@@ -69,7 +71,7 @@ class CrabHandler:
 
     def grab_failed_lumis_and_files(self, crab_directory: str, testing=False)-> dict[str, str]:
         # Run Crab submit
-        if not testing: 
+        if not testing:
             subprocess.run(f"crab report -d {crab_directory} --recovery=failed", shell=True)
 
         file_path = os.path.join(crab_directory, "results/failedLumis.json")
@@ -81,34 +83,6 @@ class CrabHandler:
 
         return dict(lumiBlocks=failed_lumis, filenames=failed_files)
 
-    # TODO Fix this up to be more dynamic
-    def config_generator(self, filename: str, parameters: dict) -> None:
-        config_template = textwrap.dedent("""\
-        from DisappTrks.BackgroundEstimation.config_cfg import *
-        from DisappTrks.StandardAnalysis.customize import *
-
-        if not os.environ["CMSSW_VERSION"].startswith ("CMSSW_12_4_") and not os.environ["CMSSW_VERSION"].startswith ("CMSSW_13_0_"):
-            print("Please use a CMSSW_12_4_X or CMSSW_13_0_X release...")
-            sys.exit (0)
-
-        process = customize (process, "{year}", "{era}", realData={isRealData}, applyPUReweighting = False, applyISRReweighting = False, applyTriggerReweighting = False, applyMissingHitsCorrections = False, runMETFilters = False)
-
-        process.source.fileNames = cms.untracked.vstring({filenames})
-        process.source.lumisToProcess=cms.untracked.VLuminosityBlockRange({lumiBlocks})
-        """).format(
-            year=parameters["year"],
-            era=parameters["era"],
-            isRealData=parameters["isRealData"],
-            filenames= ", ".join(f'"{x}"' for x in parameters["filenames"]),
-            lumiBlocks= ", ".join(f'"{x}"' for x in parameters["lumiBlocks"]),
-        )
-
-        with open(filename, "w") as file:
-            file.write(config_template)
-
-        # Format code after writing
-        subprocess.run(["black", filename], check=True)
-
     @staticmethod
     def notify(topic: str = "ryan_crab", description: str = "Job Finished"):
         requests.post(
@@ -116,25 +90,49 @@ class CrabHandler:
         )
 
     @staticmethod
-    def submit_cms_job(config_name:str='config.py'):
+    def submit_cms_job_locally(config_name:str='config.py'):
         subprocess.run(f"cmsRun {config_name}",
                         shell=True)
 
+    @staticmethod
+    def submit_crab_job(config_name:str='config.py', template_file:str='config_template.py',
+                        yaml_file:str='job_options.yml'):
+        
+        
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='CrabManager',
                                      description="Command-line utility to facilitate the submission of crab jobs"
                                      )
 
-    parser.add_argument('command', choices=['run_local'])
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Subcommand: generate
+    generate_parser = subparsers.add_parser("generate",
+                                            help="Generate a config file only")
+    generate_parser.add_argument('--year', choices=[2022, 2023], required=True)
+    generate_parser.add_argument('--era', choices=['C', 'D', 'E', 'F', 'G'],
+                                 required=True)
+    generate_parser.add_argument('--requestName', required=True)
+    generate_parser.add_argument('--channel', choices['Muon', 'Tau', 'EGamma'],
+                                 required=True)
+    generate_parser.add_argument('--isRealData', default=True)
+    generate_parser.add_argument('--templateDir', default="templates")
+    generate_parser.add_argument('--template', required=True)
+    generate_parser.add_argument('--config', required=True)
     parser.add_argument('-d', '--crabDirectory')
-    parser.add_argument('-c', '--configName', default="config.py")
-    parser.add_argument('--testRun')
-    parser.add_argument('--year')
-    parser.add_argument('--era')
-    parser.add_argument('--isRealData')
+
+    # Subcommand: run
+    run_parser = subparsers.add_parser("run",
+                                            help="Run pre-existing config file")
+    run_parser.add_argument("--local", action='store_true')
+    run_parser.add_argument('-c', '--configName', default="config.py")
 
     args = parser.parse_args()
 
+    if args.command == 'generate':
+        gen.render_template(args.template, args.config, args.year, args.era,
+                            args.dataset, args.templateDir)
+        
     if args.command == 'run_local':
         handler = CrabHandler()
         values = handler.grab_failed_lumis_and_files(crab_directory=args.crabDirectory)
@@ -146,5 +144,5 @@ if __name__ == "__main__":
                                     "filenames": values["filenames"],
                                     "lumiBlocks": values["lumiBlocks"]})
         CrabHandler.submit_cms_job(args.configName)
-    
+
 
