@@ -1,0 +1,60 @@
+# selections.toml
+[TauTagPt55]
+channels = ["TauTagPt55", "TauTagPt55MetTrig"]
+hist_sets = ["histSetsTau", "histSetsTau"]
+weights = ["weights", "weights"]
+scale_factor_producers = ["scaleFactorProducers", "scaleFactorProducers"]
+collection_maps = ["collMap", "collMap"]
+producers = ["variableProducers + tauMETTriggerProducer", "variableProducers"]
+ignore_skimmed_collections = [true, true]
+force_non_empty_skim = [false, false]
+
+[ZtoTauToMuProbeTrk]
+channels = ["ZtoTauToMuProbeTrk", "ZtoTauToMuProbeTrkWithFilter", "ZtoTauToMuProbeTrkWithSSFilter"]
+hist_sets = ["histSetsMuon", "histSetsMuon", "histSetsMuon"]
+weights = ["weightsWithMuonSF", "weightsWithMuonSF", "weightsWithMuonSF"]
+scale_factor_producers = ["scaleFactorProducersWithMuons", "scaleFactorProducersWithMuons", "scaleFactorProducersWithMuons"]
+collection_maps = ["collMap", "collMap", "collMap"]
+producers = ["variableProducers + tauToMuonTPProducer", "variableProducers + tauToMuonTPProducer", "variableProducers + tauToMuonTPProducer"]
+ignore_skimmed_collections = true
+force_non_empty_skim = false
+
+[ZtoTauToEleProbeTrk]
+channels = ["ZtoTauToEleProbeTrk", "ZtoTauToEleProbeTrkWithFilter", "ZtoTauToEleProbeTrkWithSSFilter"]
+hist_sets = ["histSetsElectron", "histSetsElectron", "histSetsElectron"]
+weights = ["weightsWithEleSF", "weightsWithEleSF", "weightsWithEleSF"]
+scale_factor_producers = ["scaleFactorProducersWithElectrons", "scaleFactorProducersWithElectrons", "scaleFactorProducersWithElectrons"]
+collection_maps = ["collMap", "collMap", "collMap"]
+producers = ["variableProducers + tauToElectronTPProducer", "variableProducers + tauToElectronTPProducer", "variableProducers + tauToElectronTPProducer"]
+ignore_skimmed_collections = true
+force_non_empty_skim = false
+
+[ElectronTagPt55]
+channels = ["ElectronTagPt55", "ElectronTagPt55MetTrig"]
+hist_sets = ["histSetsElectron", "histSetsElectron"]
+weights = ["weightsWithEleSF", "weightsWithEleSF"]
+scale_factor_producers = ["scaleFactorProducersWithElectrons", "scaleFactorProducersWithElectrons"]
+collection_maps = ["collMap", "collMap"]
+producers = ["variableProducers + electronMETTriggerProducer", "variableProducers"]
+ignore_skimmed_collections = true
+force_non_empty_skim = false
+
+[MuonFiducial]
+channels = ["MuonFiducialCalcBeforeOldCuts", "MuonFiducialCalcAfterOldCuts"]
+hist_sets = ["histSetsMuon", "histSetsMuon"]
+weights = ["weightsWithMuonSF", "weightsWithMuonSF"]
+scale_factor_producers = ["scaleFactorProducersWithMuons", "scaleFactorProducersWithMuons"]
+collection_maps = ["collMap", "collMap"]
+producers = ["variableProducers", "variableProducers"]
+ignore_skimmed_collections = true
+force_non_empty_skim = false
+
+[ElectronFiducial]
+channels = ["ElectronFiducialCalcBeforeOldCuts", "ElectronFiducialCalcAfterOldCuts"]
+hist_sets = ["histSetsElectron", "histSetsElectron"]
+weights = ["weightsWithEleSF", "weightsWithEleSF"]
+scale_factor_producers = ["scaleFactorProducersWithElectrons", "scaleFactorProducersWithElectrons"]
+collection_maps = ["collMap", "collMap"]
+producers = ["variableProducers", "variableProducers"]
+ignore_skimmed_collections = true
+force_non_empty_skim = true

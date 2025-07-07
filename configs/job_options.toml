@@ -1,0 +1,147 @@
+# Selection should be controlled from python code so I don't have to manually edit the config file
+
+[2022.C]
+era = "C"
+
+[2022.C.Tau]
+dataset = "/Muon/Run2022C-22Sep2023-v1/MINIAOD"
+[2022.C.Muon]
+dataset = "/Muon/Run2022C-22Sep2023-v1/MINIAOD"
+[2022.C.EGamma]
+dataset= "/EGamma/Run2022C-22Sep2023-v1/MINIAOD"
+
+[2022.D]
+era = "D"
+
+[2022.D.Tau]
+dataset= "/Muon/Run2022D-22Sep2023-v1/MINIAOD"
+[2022.D.Muon]
+dataset= "/Muon/Run2022D-22Sep2023-v1/MINIAOD"
+[2022.D.EGamma]
+dataset= "/EGamma/Run2022D-22Sep2023-v1/MINIAOD"
+
+[2022.E]
+era = "E"
+
+[2022.E.Tau]
+dataset="/Muon/Run2022E-22Sep2023-v1/MINIAOD"
+[2022.E.Muon]
+dataset="/Muon/Run2022E-22Sep2023-v1/MINIAOD"
+[2022.E.EGamma]
+dataset="/EGamma/Run2022E-22Sep2023-v1/MINIAOD"
+
+[2022.F]
+era = "F"
+
+[2022.F.Tau]
+dataset="/Muon/Run2022F-19Dec2023-v1/MINIAOD"
+[2022.F.Muon]
+dataset="/Muon/Run2022F-19Dec2023-v1/MINIAOD"
+[2022.F.EGamma]
+dataset="/EGamma/Run2022F-19Dec2023-v1/MINIAOD"
+
+[2022.G]
+era ="G"
+
+[2022.G.Tau]
+dataset="/Muon/Run2022G-19Dec2023-v2/MINIAOD"
+[2022.G.Muon]
+dataset="/Muon/Run2022G-19Dec2023-v2/MINIAOD"
+[2022.G.EGamma]
+dataset="/EGamma/Run2022G-19Dec2023-v1/MINIAOD"
+
+[2023.C]
+era ="C"
+
+[2023.C.v1.Tau0]
+dataset="/Muon0/Run2023C-22Sep2023_v1-v1/MINIAOD"
+[2023.C.v1.Muon0]
+dataset="/Muon0/Run2023C-22Sep2023_v1-v1/MINIAOD"
+[2023.C.v1.EGamma0]
+dataset="/EGamma0/Run2023C-22Sep2023_v1-v1/MINIAOD"
+
+
+[2023.C.v2.Tau0]
+dataset="/Muon0/Run2023C-22Sep2023_v2-v1/MINIAOD"
+[2023.C.v2.Muon0]
+dataset="/Muon0/Run2023C-22Sep2023_v2-v1/MINIAOD"
+[2023.C.v2.EGamma0]
+dataset="/EGamma0/Run2023C-22Sep2023_v2-v1/MINIAOD"
+
+
+[2023.C.v3.Tau0]
+dataset="/Muon0/Run2023C-22Sep2023_v3-v1/MINIAOD"
+[2023.C.v3.Muon0]
+dataset="/Muon0/Run2023C-22Sep2023_v3-v1/MINIAOD"
+[2023.C.v3.EGamma0]
+dataset="/EGamma0/Run2023C-22Sep2023_v3-v1/MINIAOD"
+
+[2023.C.v4.Tau0]
+dataset="/Muon0/Run2023C-22Sep2023_v4-v1/MINIAOD"
+[2023.C.v4.Muon0]
+dataset="/Muon0/Run2023C-22Sep2023_v4-v1/MINIAOD"
+[2023.C.v4.EGamma0]
+dataset="/EGamma0/Run2023C-22Sep2023_v4-v1/MINIAOD"
+
+
+[2023.C.v1.Tau1]
+dataset="/Muon1/Run2023C-22Sep2023_v1-v1/MINIAOD"
+[2023.C.v1.Muon1]
+dataset="/Muon1/Run2023C-22Sep2023_v1-v1/MINIAOD"
+[2023.C.v1.EGamma1]
+dataset="/EGamma1/Run2023C-22Sep2023_v1-v1/MINIAOD"
+
+
+[2023.C.v2.Tau1]
+dataset="/Muon1/Run2023C-22Sep2023_v2-v1/MINIAOD"
+[2023.C.v2.Muon1]
+dataset="/Muon1/Run2023C-22Sep2023_v2-v1/MINIAOD"
+[2023.C.v2.EGamma1]
+dataset="/EGamma1/Run2023C-22Sep2023_v2-v1/MINIAOD"
+
+
+[2023.C.v3.Tau1]
+dataset="/Muon1/Run2023C-22Sep2023_v3-v1/MINIAOD"
+[2023.C.v3.Muon1]
+dataset="/Muon1/Run2023C-22Sep2023_v3-v1/MINIAOD"
+[2023.C.v3.EGamma1]
+dataset="/EGamma1/Run2023C-22Sep2023_v3-v1/MINIAOD"
+
+[2023.C.v4.Tau1]
+dataset="/Muon1/Run2023C-22Sep2023_v4-v1/MINIAOD"
+[2023.C.v4.Muon1]
+dataset="/Muon1/Run2023C-22Sep2023_v4-v1/MINIAOD"
+[2023.C.v4.EGamma1]
+dataset="/EGamma1/Run2023C-22Sep2023_v4-v1/MINIAOD"
+
+
+[2023.D]
+era ="D"
+
+[2023.D.v1.Tau0]
+dataset="/Muon0/Run2023D-22Sep2023_v1-v1/MINIAOD"
+[2023.D.v1.Muon0]
+dataset="/Muon0/Run2023D-22Sep2023_v1-v1/MINIAOD"
+[2023.D.v1.EGamma0]
+dataset="/EGamma0/Run2023D-22Sep2023_v1-v1/MINIAOD"
+
+[2023.D.v2.Tau0]
+dataset="/Muon0/Run2023D-22Sep2023_v2-v1/MINIAOD"
+[2023.D.v2.Muon0]
+dataset="/Muon0/Run2023D-22Sep2023_v2-v1/MINIAOD"
+[2023.D.v2.EGamma0]
+dataset="/EGamma0/Run2023D-22Sep2023_v2-v1/MINIAOD"
+
+[2023.D.v1.Tau1]
+dataset="/Muon1/Run2023D-22Sep2023_v1-v1/MINIAOD"
+[2023.D.v1.Muon1]
+dataset="/Muon1/Run2023D-22Sep2023_v1-v1/MINIAOD"
+[2023.D.v1.EGamma1]
+dataset="/EGamma1/Run2023D-22Sep2023_v1-v1/MINIAOD"
+
+[2023.D.v2.Tau1]
+dataset="/Muon1/Run2023D-22Sep2023_v2-v1/MINIAOD"
+[2023.D.v2.Muon1]
+dataset="/Muon1/Run2023D-22Sep2023_v2-v1/MINIAOD"
+[2023.D.v2.EGamma1]
+dataset="/EGamma1/Run2023D-22Sep2023_v2-v1/MINIAOD"
