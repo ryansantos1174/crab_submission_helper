@@ -10,7 +10,7 @@ config.General.transferLogs = True
 
 
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'config_2022_cfg.py'
+config.JobType.psetName = '{{ config }}'
 config.JobType.allowUndistributedCMSSW = True
 
 ####FOR FILELIST #######
@@ -27,14 +27,15 @@ config.JobType.allowUndistributedCMSSW = True
 ###FOR MINIAOD ######
 config.Data.inputDataset = "{{ input_dataset }}"
 
-if "2022" in request_name:
-    config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
-elif "2023" in request_name:
-    config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json"
+{% if year == "2022" %}
+config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
+{% elif year == "2023" %}
+config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json"
+{% endif %}
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'LumiBased'
-config.Data.unitsPerJob = {{ units_per_job | default(20)  }}
+config.Data.unitsPerJob = {{ units_per_job | default(10)  }}
 
 
 

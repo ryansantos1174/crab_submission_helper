@@ -1,16 +1,26 @@
 from DisappTrks.StandardAnalysis.protoConfig_cfg import *
 
+def getNHitsVariations (chName, hitRange = list(range(3, 8)), checkBlinding = False):
+    if checkBlinding:
+        signalRequirement = 4 if (os.environ["CMSSW_VERSION"].startswith ("CMSSW_9_4_") or os.environ["CMSSW_VERSION"].startswith ("CMSSW_10_2_")) else 7
+        hitRange = [x for x in hitRange if x < signalRequirement]
+    names = {x : int(x[5]) for x in cutTrkNValidHitsVariations if int(x[5]) in hitRange} # "NHits5"[5] = 5
+    return [globals ()[chName + x] for x in names]
+
+def getNLayersChannelVariations (chName):
+    return [globals()[chName + x] for x in ['NLayers4', 'NLayers5', 'NLayers6plus']]
+
 {% for channel, hist_set, weight, sfp, cmap, producer, ignore_skimmed, force_non_empty in zipped %}
 add_channels(
         process,
-        ["{{ channel }}"],
+        [{{ channel }}],
         {{ hist_set }},
         {{ weight }},
         {{ sfp }},
         {{ cmap }},
         {{ producer }},
-        ignoreSkimmedCollections={{ ignore_skimmed | lower }},
-        forceNonEmptySkim={{ force_non_empty_skim | lower }}
+        ignoreSkimmedCollections={{ ignore_skimmed }},
+        forceNonEmptySkim={{ force_non_empty_skim }}
 )
 {% endfor %}
 
