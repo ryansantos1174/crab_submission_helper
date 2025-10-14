@@ -12,9 +12,22 @@ def status_parser(crab_status_output:str)->dict:
 
     return {"Failed": bool(failed_match), "Finished" : bool(finished_match)}
 
+def replace_template_values(template_file_path:str, replacement:dict)->None:
+    template_pattern = r"__([A-Z0-9_]+)__"
 
+    with open(template_file_path, "r") as f:
+        text = f.read()
+
+    def replace_var(match):
+        key = match.group(1)  # extract variable name between __ __
+        print(key)
+        return replacement.get(key, match.group(0))  # replace if found, else keep original
+
+    subbed_text = re.sub(template_pattern, replace_var, text)
+    print(subbed_text)
 
 if __name__ == "__main__":
-    with open("../tests/example_crab_status_output.txt") as f:
-        data = f.read()
-    status_parser(data)
+    replacement = {"SKIM_FILE": "test.py",
+                   "DATASET" : "ahhhh",
+                   "REQUESTNAME" : "sldkjfa"}
+    replace_template_values("crab_2022_Tau_template.py", replacement)
