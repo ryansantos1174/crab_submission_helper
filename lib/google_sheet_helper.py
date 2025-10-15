@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-Notes:
-The selection name is on column D, the fist selection starts at row 8.
-The All column for the selections is on column E
-
-"""
 import subprocess
 from pathlib import Path
 import re
@@ -12,75 +6,100 @@ import gspread
 from google.oauth2.service_account import Credentials
 from parser import status_parser
 import sys
-# === CONFIGURATION ===
-GLOB_PATTERN = "crab_*2023*"
-BASE_DIR = Path("../DisappTrks/BackgroundEstimation/test/crab")
-SHEET_ID = "1YeKU_0nEG56fJtiPiHs54O1dULYMrmO23WKt5-06ENs"  # Change to your sheet name
-CREDENTIALS_PATH = Path("credentials.json")
+from typing import Optional
 
-# Authenticate with Google
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-]
-creds = Credentials.from_service_account_file(CREDENTIALS_PATH, scopes=scope)
-gc = gspread.authorize(creds)
-sh = gc.open_by_key(SHEET_ID)
+def setup_google_sheet(sheet_id:str, credentials_file:str)->gspread.worksheet:
+    # Your service account needs to have this api enabled. If you reference the
+    # sheet by ID, you don't need any other apis enabled
+    scope = ["https://www.googleapis.com/auth/spreadsheets"]
+    CREDENTIALS_PATH = Path(credentials_file)
+    creds = Credentials.from_service_account_file(CREDENTIALS_PATH)
+    gc = gspread.authorize(creds)
+    return gc.open_by_key(sheet_id)
 
-for crab_dir in BASE_DIR.glob(GLOB_PATTERN):
-    # Get rid of "crab_" at the beginning of file path
-    task = "_".join(crab_dir.name.split("_")[1:])
-# Look for pattern: underscore + year+letter + underscore + version
-    match = re.search(r'_(\d{4}[A-Z])_(v\d+)_(?:Muon|EGamma)(v\d)', task)
-    if match:
-        year_part = match.group(1)  # '2023C'
-        version_part = match.group(2)  # 'v1'
-        dataset_version = match.group(3)
-        print(year_part, version_part, dataset_version)
-    print(f"Checking {task}...")
-
-    # Get all worksheet titles
-    worksheet_titles = [sheet.title for sheet in sh.worksheets()]
+def find_worksheet(sheet, era, version)->Optional[int]:
+    """
+    Find worksheet that matches the given era and version
+    """
+    worksheets = [sheet.title for sheet in sh.worksheets()]
 
     # Look for a worksheet that contains both year_part and version_part
     index = next(
-        (i for i, title in enumerate(worksheet_titles)
-         if year_part in title and version_part in title),
+        (i for i, title in enumerate(worksheets)
+         if era in title and version in title),
         None
     )
+    return index
 
-    if index is not None:
-        sheet = sh.get_worksheet(index)
-        print(f"Found worksheet: {sheet.title}")
+def edit_cell(worksheet, row:int, column:int, value:str, force:bool = False)->None:
+    """
+    Edit google sheet cell. By default this will not edit the cell if there
+    is already a value inside. This allows for users to manually edit the google sheet in
+    case of the need for manual intervention. This option can be overriden with the force
+    flag
+
+    Note: The format of the google sheet for data processing is
+    selection, dataset0, dataset1, nlayers, merged
+    """
+    if force:
+        worksheet.update_cell(row, column, value)
     else:
-        print("No matching worksheet found")
+        if worksheet.cell(row, column).value:
+            logging.warning(f"Cell {row}, {column} already has a value inside. If you would like to override pass force=True to edit_cell()")
+        else:
+            worksheet.update_cell(row, column, value)
 
-    # Read current sheet contents into a dict for fast lookup
-    # existing contains the selection and the index at which they start
-    existing = {row[3]: i+8 for i, row in enumerate(sheet.get_all_values()[7:]) if row}
-    existing.pop("", None)  # removes key "" if it exists, does nothing otherwise
 
-    result = subprocess.run(
-        ["crab", "status", "-d", str(crab_dir)],
-        capture_output=True, text=True
-    )
 
-    # Determine status
-    status_dict = status_parser(result.stdout)
 
-    status = if status_dict["Finished"] and not status_dict["Failed"]
-    value = "finished" if status else "processing"
+def find_cell(worksheet, task_name:str)->Optional[tuple(int)]:
+    """
+    Find cell that contains task_name.
 
-    for selection in existing.keys():
-        if selection.lower() in task.lower():
-            if "nlayers" in task.lower():
-                range_name = f"G{row_index}"
-            else:
-                if dataset_version == "v0":
-                    range_name=f"E{row_index}"
-                if dataset_version == "v1":
-                    range_name=f"E{row_index}"
+    Note: Currently, task_name must match exactly to the cell
+    """
+    cell = worksheet.find(task_name)
+    if cell:
+        return cell.row, cell.col
+    else:
+        return None, None
 
-            # Update existing row
-            row_index = existing[selection]  # +1 because of header
-            sheet.update(range_name=range_name, values=[[status]])
-            print(f"Updated google sheet row {row_index}")
+
+def update_task_status(worksheet_ID, credentials_file, task_name, status)->None:
+    """
+    Update the status of a selection in a worksheet.
+
+    Arguments:
+    worksheet_ID: Google sheet ID that can be obtained from URL
+    credentials_file: Credentials file used to validate service account needed to edit google sheet
+    task_name: The name of the task as listed in the crab directory
+    status: The status of the current selection
+    """
+    sheet = setup_google_sheet(worksheet_ID, credentials_file)
+
+    selection, era, version, dataset_version = parse_crab_task(task_name)
+    if not all([selection,era,version,dataset_version]):
+        logging.error(f"Unable to parse all information from task name: {task_name}")
+        return
+
+    worksheet_index = find_worksheet(sheet, era, version)
+    if not worksheet_index:
+        logging.error(f"Not able to find worksheet that matches given era and version: {era}, {version}")
+        return
+
+    row, column = find_cell(selection)
+    if not all([row, column]):
+        logging.error(f"Not able to find selection inside of sheet: {selection}")
+        return
+
+    # Determine whether you are processing NLayers, EGamma/Muon0 or EGamma/Muon1
+    if dataset_version == "v0":
+        col_offset = 1
+    elif dataset_version == "v1":
+        col_offset = 2
+    elif "NLayers" in selection:
+        col_offset = 3
+    else:
+        logging.error(f"Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): {task_name}")
+
+    edit_cell(sheet.get_worksheet(worksheet_index), row, column+col_offset, status)
