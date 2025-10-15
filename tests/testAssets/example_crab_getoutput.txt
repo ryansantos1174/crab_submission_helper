@@ -1,0 +1,5 @@
+Rucio client intialized for account rdelossa
+Rucio client intialized for account rdelossa
+=== Files from job 1-1:
+1) PFN: root://cms-xrd-global.cern.ch//store/group/lpclonglived/DisappTrks/Muon0/ZtoTauToMuProbeTrk_2023C_v3_Muon0/251010_153349/0000/skim_ZtoTauToMuProbeTrk_2025_10_10_10h33m04s_1-1.root
+   LFN: /store/group/lpclonglived/DisappTrks/Muon0/ZtoTauToMuProbeTrk_2023C_v3_Muon0/251010_153349/0000/skim_ZtoTauToMuProbeTrk_2025_10_10_10h33m04s_1-1.root

@@ -1,0 +1,33 @@
+Rucio client intialized for account rdelossa
+CRAB project directory:		/uscms_data/d3/delossan/CMSSW_13_0_13/src/DisappTrks/BackgroundEstimation/test/crab/crab_TauTagPt55_2023D_v1
+Task name:			251010_035446:rdelossa_crab_TauTagPt55_2023D_v1
+Grid scheduler - Task Worker:	crab3@vocms0137.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/251010_035446%3Ardelossa_crab_TauTagPt55_2023D_v1
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=rdelossa&var-task=251010_035446%3Ardelossa_crab_TauTagPt55_2023D_v1&from=1760064886000&to=now
+Warning:			Task requests 3500 MB of memory, but only 2500 are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	FAILED
+
+The job splitting of this task is 'Automatic', please refer to this FAQ for a description of the jobs status summary:
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3FAQ#What_is_the_Automatic_splitting
+More details of Automatic Splitting process for this task (including possible failures) are in the Dagman Log files in:
+https://cmsweb.cern.ch/scheddmon/0137/rdelossa/251010_035446:rdelossa_crab_TauTagPt55_2023D_v1/AutomaticSplitting/
+
+Jobs status:                    failed       		  0.6% (  2/330)
+				finished     		 99.4% (328/330)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Error Summary: (use crab status --verboseErrors for details about the errors)
+
+  2 jobs failed with exit code 8901
+
+Have a look at https://twiki.cern.ch/twiki/bin/viewauth/CMSPublic/JobExitCodes for a description of the exit codes.
+
+Summary of run jobs:
+ * Memory: 1802MB min, 4150MB max, 1958MB ave
+ * Runtime: 0:03:47 min, 8:12:16 max, 3:53:21 ave
+ * CPU eff: 11% min, 289% max, 109% ave
+ * Waste: 507:46:13 (28% of total)
+
+Log file is /uscms_data/d3/delossan/CMSSW_13_0_13/src/DisappTrks/BackgroundEstimation/test/crab/crab_TauTagPt55_2023D_v1/crab.log
