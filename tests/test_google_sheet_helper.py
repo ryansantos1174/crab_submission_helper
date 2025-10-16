@@ -88,4 +88,4 @@ class TestGoogleSheetHelpers(unittest.TestCase):
 
         update_task_status("sheet_id", "creds.json", "crab_task", "DONE")
 
-        mock_edit.assert_called_once_with(mock_ws, 5, 2, "DONE")
+        mock_edit.assert_called_once_with(mock_ws, 5, 2, "DONE", force=False)

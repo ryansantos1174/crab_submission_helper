@@ -68,7 +68,7 @@ def find_cell(worksheet, task_name:str)->Optional[tuple[int, ...]]:
         return None, None
 
 
-def update_task_status(worksheet_ID, credentials_file, task_name, status, force)->None:
+def update_task_status(worksheet_ID, credentials_file, task_name, status, force=False)->None:
     """
     Update the status of a selection in a worksheet.
 
