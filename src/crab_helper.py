@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 import argparse
-import lib.crab_helper as ch
 import logging
+import os
+import time
 
+from dotenv import load_dotenv
+from gspread.exceptions import APIError
+
+from lib import crab_helper as ch
+from lib.google_sheet_helper import update_task_status
+
+load_dotenv()
 ##################################
 #  Setup command line interface  #
 ##################################
@@ -65,47 +73,63 @@ if args.verbose:
     log_level = logging.DEBUG
 else:
     log_level = logging.INFO
-print(log_level)
 logging.basicConfig(
     filename=args.log,
     level=log_level,
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
+logger = logging.getLogger(__name__)
 
 if args.command == 'submit':
     print("Crab submit is currently not implemented")
     ...
+
 if args.command == 'status':
-    logging.info("Running crab status")
+    logger.info("Running crab status")
     crab_directories = ch.grab_crab_directories(crab_directory=args.directory)
 
     for directory in crab_directories:
-        logging.debug("Looping over directories")
+        logger.debug("Looping over directories")
         statuses = ch.get_crab_status(directory, run_directory=args.run_dir)
+
         if statuses["Finished"] and not statuses["Failed"]:
-            logging.info(f"Task {str(directory).split('/')[-1]} finished")
+            logger.info(f"Task {str(directory).split('/')[-1]} finished")
+            status = "Finished"
         elif statuses["Failed"] and statuses["Finished"]:
-            logging.info(f"Task has failed jobs: {str(directory).split('/')[-1]}")
+            logger.info(f"Task has failed jobs: {str(directory).split('/')[-1]}")
+            status = "Failed Jobs"
         else:
-            logging.info(f"Serious issue with job {str(directory).split('/')[-1]}")
+            logger.info(f"Serious issue with job {str(directory).split('/')[-1]}")
+            status = "Serious Failure"
+
+        # When we reach the Google API limit error 429 will be raised
+        try:
+            update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
+                                str(directory), status, force=True)
+        except APIError as e:
+            # Wait a minute for the API request limit to reset
+            logger.debug("Google sheet API rate limit reached waiting 1 minute to proceed")
+            time.sleep(60)
+            update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
+                                str(directory), status, force=True)
+
 
 if args.command == 'resubmit':
-    logging.info("Running crab resbumit")
+    logger.info("Running crab resbumit")
     crab_directories = ch.grab_crab_directories(crab_directory=args.directory)
-    print(f"Running over following crab directoies {[directory for directory in crab_directories]}")
-    logging.debug(f"Running over following crab directoies {crab_directories}")
+    logger.debug(f"Running over following crab directoies {crab_directories}")
 
     for directory in crab_directories:
         # TODO: Implement way to apply resubmission criteria like maxmemory or siteblacklist
         # without affecting all submissions
         return_code, command = ch.crab_resubmit(str(directory), run_directory=args.run_dir)
 
-        logging.debug(f"Ran crab command: {command}")
-        logging.debug(f"Crab command returned status: {return_code}")
+        logger.debug(f"Ran crab command: {command}")
+        logger.debug(f"Crab command returned status: {return_code}")
 
         if return_code == 192:
-            logging.warning(f"No jobs to resubmit for task {str(directory).split('/')[-1]}")
+            logger.warning(f"No jobs to resubmit for task {str(directory).split('/')[-1]}")
         elif return_code != 0:
-            logging.error(f"Crab submit command did not execute correctly: {command}")
-            logging.error(f"Crab error code: {return_code}")
+            logger.error(f"Crab submit command did not execute correctly: {command}")
+            logger.error(f"Crab error code: {return_code}")

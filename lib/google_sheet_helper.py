@@ -4,16 +4,18 @@ from pathlib import Path
 import re
 import gspread
 from google.oauth2.service_account import Credentials
-from parser import status_parser
+from lib.parse_helper import status_parser, parse_crab_task
 import sys
 from typing import Optional
+import logging
 
+logger = logging.getLogger(__name__)
 def setup_google_sheet(sheet_id:str, credentials_file:str)->gspread.worksheet:
     # Your service account needs to have this api enabled. If you reference the
     # sheet by ID, you don't need any other apis enabled
     scope = ["https://www.googleapis.com/auth/spreadsheets"]
     CREDENTIALS_PATH = Path(credentials_file)
-    creds = Credentials.from_service_account_file(CREDENTIALS_PATH)
+    creds = Credentials.from_service_account_file(CREDENTIALS_PATH, scopes=scope)
     gc = gspread.authorize(creds)
     return gc.open_by_key(sheet_id)
 
@@ -21,7 +23,7 @@ def find_worksheet(sheet, era, version)->Optional[int]:
     """
     Find worksheet that matches the given era and version
     """
-    worksheets = [sheet.title for sheet in sh.worksheets()]
+    worksheets = [sheet.title for sheet in sheet.worksheets()]
 
     # Look for a worksheet that contains both year_part and version_part
     index = next(
@@ -45,19 +47,20 @@ def edit_cell(worksheet, row:int, column:int, value:str, force:bool = False)->No
         worksheet.update_cell(row, column, value)
     else:
         if worksheet.cell(row, column).value:
-            logging.warning(f"Cell {row}, {column} already has a value inside. If you would like to override pass force=True to edit_cell()")
+            logger.warning(f"Cell {row}, {column} already has a value inside. If you would like to override pass force=True to edit_cell()")
         else:
             worksheet.update_cell(row, column, value)
 
 
 
 
-def find_cell(worksheet, task_name:str)->Optional[tuple(int)]:
+def find_cell(worksheet, task_name:str)->Optional[tuple[int, ...]]:
     """
     Find cell that contains task_name.
 
     Note: Currently, task_name must match exactly to the cell
     """
+
     cell = worksheet.find(task_name)
     if cell:
         return cell.row, cell.col
@@ -65,7 +68,7 @@ def find_cell(worksheet, task_name:str)->Optional[tuple(int)]:
         return None, None
 
 
-def update_task_status(worksheet_ID, credentials_file, task_name, status)->None:
+def update_task_status(worksheet_ID, credentials_file, task_name, status, force)->None:
     """
     Update the status of a selection in a worksheet.
 
@@ -79,27 +82,29 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status)->None:
 
     selection, era, version, dataset_version = parse_crab_task(task_name)
     if not all([selection,era,version,dataset_version]):
-        logging.error(f"Unable to parse all information from task name: {task_name}")
+        logger.error(f"Unable to parse all information from task name: {task_name}")
         return
 
     worksheet_index = find_worksheet(sheet, era, version)
-    if not worksheet_index:
-        logging.error(f"Not able to find worksheet that matches given era and version: {era}, {version}")
+    worksheet = sheet.get_worksheet(worksheet_index)
+
+    if worksheet_index is None:
+        logger.error(f"Not able to find worksheet that matches given era and version: {era}, {version}")
         return
 
-    row, column = find_cell(selection)
+    row, column = find_cell(worksheet, selection)
     if not all([row, column]):
-        logging.error(f"Not able to find selection inside of sheet: {selection}")
+        logger.error(f"Not able to find selection inside of sheet: {selection}")
         return
 
     # Determine whether you are processing NLayers, EGamma/Muon0 or EGamma/Muon1
-    if dataset_version == "v0":
+    if str(dataset_version) == "0":
         col_offset = 1
-    elif dataset_version == "v1":
+    elif str(dataset_version) == "1":
         col_offset = 2
     elif "NLayers" in selection:
         col_offset = 3
     else:
-        logging.error(f"Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): {task_name}")
+        logger.error(f"Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): {task_name}")
 
-    edit_cell(sheet.get_worksheet(worksheet_index), row, column+col_offset, status)
+    edit_cell(worksheet, row, column+col_offset, status, force=force)

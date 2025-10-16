@@ -32,16 +32,19 @@ def replace_template_values(template_file_path:str, replacement:dict)->None:
         return replacement.get(key, match.group(0))  # replace if found, else keep original
 
     subbed_text = re.sub(template_pattern, replace_var, text)
-def parse_crab_task(task_name:str)->Optional[tuple(str)]:
+
+def parse_crab_task(task_name:str)->Optional[tuple[str,...]]:
+    # Get last directory
+    task = task_name.split("/")[-1]
     # Get rid of "crab_" at the beginning of file path
-    task = "_".join(task_name.split("_")[1:])
-    match = re.search(r'_(\d{4}[A-Z])_(v\d+)_(?:Muon|EGamma)(v\d)', task)
+    task = "_".join(task.split("_")[1:])
+    match = re.search(r'([a-zA-Z]*\d*)_(\d{4}[A-Z])_(v\d)_(?:Muon|EGamma)(\d)', task)
     if match:
-        selection = match.group(0)
-        era = match.group(1)  # '2023C'
-        version = match.group(2)  # 'v1'
-        dataset_version = match.group(3)
-        return selection, year, version, dataset_version
+        selection = match.group(1)
+        era = match.group(2)  # '2023C'
+        version = match.group(3)  # 'v1'
+        dataset_version = match.group(4)
+        return selection, era, version, dataset_version
     else:
         return None, None, None, None
 
