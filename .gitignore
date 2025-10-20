@@ -4,3 +4,4 @@ __pycache__
 /.venv/
 /secrets/
 *.log
+/data/generated/20251017_1417/config_2022_cfg_template.py
