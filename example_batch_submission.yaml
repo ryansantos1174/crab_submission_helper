@@ -2,13 +2,17 @@
 # Each era now has versions which should go in Era Version: (ie. 2023C_v1)
 # Dataset Version: For the EGamma and Muon datasetets there is Muon0/Muon1 etc
 # Selections: Which selection to run. This is the file that will be placed directly inside of the template. Make sure it matches what you want exactly!
-jobs:
-  - Year: 2023C
-    Era Version: v1
-    Dataset Version: 1
-    Selections: ZtoTauToEleProbeTrk
+- YEAR: 2023
+  ERA: C
+  ERA_VERSION: 1
+  DATASET_VERSION: 1
+  SELECTIONS:
+  - ZtoTauToEleProbeTrk
+  - ZtoTauToEleProbeTrkWithFilter
 
-  - Year: 2023D
-    Era: v1
-    Dataset Version: 1
-    Selections: ZtoTauToMuProbeTrk
+- YEAR: 2023
+  ERA: D
+  ERA_VERSION: 1
+  DATASET_VERSION: 1
+  SELECTIONS:
+  - ZtoTauToMuProbeTrk

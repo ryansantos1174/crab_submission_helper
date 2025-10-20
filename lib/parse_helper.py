@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import re
 from typing import Optional
+import yaml
 
 def status_parser(crab_status_output:str)->dict:
     # Search for failed and finished optionally so that if either are not there the
@@ -13,7 +14,8 @@ def status_parser(crab_status_output:str)->dict:
 
     return {"Failed": bool(failed_match), "Finished" : bool(finished_match)}
 
-def replace_template_values(template_file_path:str, replacement:dict)->None:
+def replace_template_values(template_file_path:str, replacement:dict,
+                            save:bool =True, output_file:Optional[str]=None)->None:
     """
     Replace values of the form __VALUE__ inside of file with
     values inside a dictionary of the same name.
@@ -22,16 +24,31 @@ def replace_template_values(template_file_path:str, replacement:dict)->None:
     if __SKIM_FILE__ were in a file,  {"SKIM_FILE": test} would replace
     __SKIM_FILE__ with test.
     """
+
+    # Uppercase keys in replacement to keep readability in yaml
+    replacement = {k.upper(): v for k, v in replacement.items()}
+
     template_pattern = r"__([A-Z0-9_]+)__"
 
     with open(template_file_path, "r") as f:
         text = f.read()
 
+
     def replace_var(match):
         key = match.group(1)  # extract variable name between __ __
-        return replacement.get(key, match.group(0))  # replace if found, else keep original
+        return str(replacement.get(key, match.group(0)))  # replace if found, else keep original
 
     subbed_text = re.sub(template_pattern, replace_var, text)
+
+    if save and output_file:
+        with open(output_file, "w") as outfile:
+            outfile.write(subbed_text)
+
+    elif save and not output_file:
+        logger.error("You cannot save your configuration file without first setting a output file!")
+
+    elif output_file and not save:
+        logger.error("You have output_file set but not save. Did you mean to save the configuration file?")
 
 def parse_crab_task(task_name:str)->Optional[tuple[str,...]]:
     # Get last directory
@@ -47,6 +64,14 @@ def parse_crab_task(task_name:str)->Optional[tuple[str,...]]:
         return selection, era, version, dataset_version
     else:
         return None, None, None, None
+
+def parse_yaml(yaml_file_path:str) -> dict['str', ...]:
+    with open(yaml_file_path, "r") as f:
+        data = yaml.safe_load(f)
+    return data
+
+
+
 
 if __name__ == "__main__":
     replacement = {"SKIM_FILE": "test.py",

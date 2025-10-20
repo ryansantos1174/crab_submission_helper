@@ -47,6 +47,7 @@ parser_submit = subparsers.add_parser(
     help="Initial submission of crab job"
 )
 parser_submit.add_argument("--template", type=str, help="Path to template directory")
+parser_submit.add_argument("--batch_file", type=str, help="Path to batch submission yaml file")
 
 parser_resubmit = subparsers.add_parser(
     "resubmit",
@@ -82,8 +83,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 if args.command == 'submit':
-    print("Crab submit is currently not implemented")
-    ...
+    # TODO: Add in check to see if job has already been submitted which would cause crab to not submit job
+
+    # Generate template_files dict needed for batch_submit_jobs
+    # Give the mapping for all possible template files here. The crab_template.py
+    # and crab_template_nlayers.py will overwrite each other but the logic to avoid this
+    # is inside batch_submit_jobs()
+    template_files = {"data/templates/config_cfg_template.py" : f"{args.rundir}config_cfg.py",
+                      "data/templates/crab_template.py" : f"{args.rundir}crab_cfg.py",
+                      "data/templates/config_selections_template.py" : f"{args.rundir}/../python/config.py",
+                      "data/templates/crab_template_nlayers.py": f"{args.rundir}crab.py"}
+    ch.batch_submit_jobs(args.batch_file, template_files)
+
+
 
 if args.command == 'status':
     logger.info("Running crab status")

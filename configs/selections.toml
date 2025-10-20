@@ -1,13 +1,7 @@
 # This file relates which dataset each selection should use for processing. The possible values for dataset are Muon or EGamma
-[TauTagPt55]
-dataset="Muon"
-[ZtoTauToMuProbeTrk]
-dataset="Muon"
-[ZtoTauToEleProbeTrk]
-dataset="EGamma"
-[ElectronTagPt55]
-dataset="EGamma"
-[MuonFiducial]
-dataset="Muon"
-[ElectronFiducial]
-dataset="EGamma"
+TauTagPt55 = "Muon"
+ZtoTauToMuProbeTrk = "Muon"
+ZtoTauToEleProbeTrk = "EGamma"
+ElectronTagPt55 = "EGamma"
+MuonFiducial = "Muon"
+ElectronFiducial = "EGamma"

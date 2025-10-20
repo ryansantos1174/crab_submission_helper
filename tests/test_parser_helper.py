@@ -3,7 +3,9 @@
 import unittest
 import re
 from unittest.mock import mock_open, patch
-from lib.parse_helper import status_parser, replace_template_values, parse_crab_task
+from lib.parse_helper import status_parser, replace_template_values, parse_crab_task, parse_yaml
+
+ASSETS_DIRECTORY="tests/testAssets/"
 
 class TestParseHelper(unittest.TestCase):
 
@@ -79,6 +81,12 @@ class TestParseHelper(unittest.TestCase):
         self.assertIsNone(era)
         self.assertIsNone(version)
         self.assertIsNone(dataset_version)
+
+    def test_parse_yaml_valid(self):
+        data = parse_yaml(ASSETS_DIRECTORY+"example_batch_submission.yaml")
+        self.assertEqual({'jobs': [{'Year': '2023C', 'Era Version': 'v1', 'Dataset Version': 1, 'Selections': 'ZtoTauToEleProbeTrk'}, {'Year': '2023D', 'Era': 'v1', 'Dataset Version': 1, 'Selections': 'ZtoTauToMuProbeTrk'}]}, data)
+
+
 
 
 if __name__ == "__main__":
