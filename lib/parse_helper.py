@@ -3,16 +3,32 @@ import re
 from typing import Optional
 import yaml
 
-def status_parser(crab_status_output:str)->dict:
-    # Search for failed and finished optionally so that if either are not there the
-    # search doesn't fail
-    failed_pattern_search = r".*failed\s+\d.*%.*"
-    finished_pattern_search = r".*finished\s+\d.*%.*"
+def status_parser(crab_status_output: str) -> dict:
+    # Regex patterns to extract the numeric percentage for each status
+    status_patterns = {
+        "finished": r"finished\s+([\d.]+)%",
+        "failed": r"failed\s+([\d.]+)%",
+        "idle": r"idle\s+([\d.]+)%",
+        "running": r"running\s+([\d.]+)%",
+        "transferring": r"transferring\s+([\d.]+)%",
+    }
 
-    failed_match = re.search(failed_pattern_search, crab_status_output)
-    finished_match = re.search(finished_pattern_search, crab_status_output)
+    # Extract all percentages found
+    status = {}
+    for key, pattern in status_patterns.items():
+        match = re.search(pattern, crab_status_output)
+        status[key] = float(match.group(1)) if match else 0.0
 
-    return {"Failed": bool(failed_match), "Finished" : bool(finished_match)}
+    # Determine whether all jobs are finished
+    all_finished = (
+        status["finished"] == 100.0
+        and all(status[k] == 0.0 for k in ["idle", "running", "transferring", "failed"])
+    )
+
+    return {
+        **status,
+        "AllFinished": all_finished
+    }
 
 def replace_template_values(template_file_path:str, replacement:dict,
                             save:bool =True, output_file:Optional[str]=None)->None:

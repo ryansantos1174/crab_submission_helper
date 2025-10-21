@@ -32,7 +32,7 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
     """
     # Ensure that the necessary values are inside of the values dictionary.
     # We need selections, year, era, and dataset version
-    required_keys = ["SELECTIONS", "YEAR", "ERA", "ERA_VERSION", "DATASET_TYPE", "DATASET_VERSION"]
+    required_keys = ["SELECTION", "YEAR", "ERA", "ERA_VERSION", "DATASET_TYPE", "DATASET_VERSION"]
 
     print(f"{values=}")
     # --- Validate required keys ---
@@ -46,7 +46,7 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
         raise KeyError(f"Missing required keys in values: {', '.join(missing)}")
 
     # --- Normalize and extract values ---
-    selections = values["SELECTIONS"]
+    selections = values["SELECTION"]
     year = str(values["YEAR"])
     era = str(values["ERA"])
     era_version = str(values["ERA_VERSION"])
@@ -57,7 +57,7 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
     if isinstance(selections, str):
         selections = [selections]
     elif not isinstance(selections, (list, tuple)):
-        raise TypeError("SELECTIONS must be a string or a list/tuple of strings")
+        raise TypeError("SELECTION must be a string or a list/tuple of strings")
 
     # --- Build the request name ---
     selection_part = "_".join(selections)
@@ -81,7 +81,7 @@ def add_dataset(values: dict[str, Any]) -> dict[str, Any]:
         dataset_data = tomli.load(f)
 
     print(dataset_data.keys())
-    dataset_type = data[values["SELECTIONS"][0]]
+    dataset_type = data[values["SELECTION"]]
 
     dataset = dataset_data[str(values['YEAR'])][values['ERA']]["v"+str(values['ERA_VERSION'])][dataset_type+str(values["DATASET_VERSION"])]
 

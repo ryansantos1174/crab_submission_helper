@@ -5,7 +5,7 @@ def getNLayersChannelVariations (chName):
     return [globals()[chName + x] for x in ['NLayers4', 'NLayers5', 'NLayers6plus']]
 
 selection = "__SELECTION__"
-NLayers = __NLAYERS__
+NLayers = False
 
 if not NLayers:
     if selection == "TauTagPt55":

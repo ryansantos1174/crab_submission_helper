@@ -8,12 +8,14 @@ import lib.generators as gen
 from typing import Optional, Union, Callable, Any
 from pathlib import Path
 
-logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 def batch_submit_jobs(
     batch_file: str,
     template_files: dict[str, str],
-    generating_functions: Union[Callable, list[Callable], None] = [gen.add_dataset, gen.add_request_name]
+    generating_functions: Union[Callable, list[Callable], None] = [gen.add_dataset, gen.add_request_name],
+    test: bool = False,
+    run_directory=None
 ):
     """
     Submit a number of crab jobs all at once. A copy of your generated template files
@@ -43,15 +45,11 @@ def batch_submit_jobs(
     # Save templates for each job
     timestamp_dir = Path(f"data/generated/{datetime.datetime.now().strftime('%Y%m%d_%H%M')}/")
     timestamp_dir.mkdir(parents=True, exist_ok=True)
-
     for job_dict in job_replacements:
         # There are two competing template files, one for NLayers submissions and one for the base selections
         # we need to get rid of one of the template file entries otherwise they will overwrite each other
         # TODO: Don't hardcode the paths here
         n_layers = job_dict.get("NLayers")
-        if n_layers is None:
-            logger.error("Missing 'NLayers' key in job_dict: %s", job_dict)
-            continue
 
         # Choose which template to remove
         if n_layers:
@@ -65,7 +63,6 @@ def batch_submit_jobs(
             logger.debug("Removed template: %s", template_to_remove)
         else:
             logger.warning("Template not found in dictionary: %s", template_to_remove)
-
         for template_path, output_path in template_files.items():
             # Save one copy for use in job
             parser.replace_template_values(template_path, job_dict, save=True, output_file=output_path)
@@ -83,22 +80,25 @@ def batch_submit_jobs(
 
             parser.replace_template_values(template_path, job_dict, save=True, output_file=outfile)
 
-            submit_crab_job()  # uncomment and implement your submission logic
+        if not test:
+            submit_crab_job(template_files["data/templates/crab_template.py"],
+                            run_directory=run_directory)  # uncomment and implement your submission logic
 
 def submit_crab_job(config_file_path:str, run_directory:Optional[str]=None)->str:
     output = subprocess.run(f"crab submit {config_file_path}",
                             shell=True,
                             capture_output=True,
                             cwd=run_directory,
-                            text=True).stdout
+                            text=True)
 
     # Verify proper submission of task
     # Check for errors in execution
-    if result.returncode != 0:
+    if output.returncode != 0:
         logger.error("❌ CRAB submission failed to execute.")
-        logger.error(result.stderr)
+        logger.error(output.stderr)
+        logger.error(output.stdout)
     else:
-        output = result.stdout
+        output = output.stdout
         logger.debug(output)
 
         # Verify successful CRAB task submission

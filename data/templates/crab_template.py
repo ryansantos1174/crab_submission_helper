@@ -11,33 +11,20 @@ config.General.transferLogs = True
 
 
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'config_2022_cfg.py'
+config.JobType.psetName = 'config_cfg.py'
 config.JobType.allowUndistributedCMSSW = True
 
-####FOR FILELIST #######
-#use inputFilelist
-config.Data.inputDBS = 'phys03'
-config.Data.userInputFiles = open('__SKIM_FILE__').readlines()
-config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 1
 
-#####################
-#### FOR DBS DATASETS ####
-# if "2022" in request_name:
-#     config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
-# elif "2023" in request_name:
-#     config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json"
+config.Data.inputDataset = "__DATASET__"
 
-# config.Data.inputDBS = 'global'
-# config.Data.unitsPerJob = 10
-# config.Data.splitting = 'LumiBased'
-############################
-# Collision ceritification for 2022 data
-# "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
-#"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
-#'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json'
-###FOR MINIAOD ######
-#config.Data.inputDataset = "__DATASET__"
+if "2022" in request_name:
+    config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
+elif "2023" in request_name:
+    config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json"
+
+config.Data.inputDBS = 'global'
+config.Data.unitsPerJob = 20
+config.Data.splitting = 'LumiBased'
 
 
 config.Data.publication = False

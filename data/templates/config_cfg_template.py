@@ -1,4 +1,4 @@
-from DisappTrks.BackgroundEstimation.config_cfg import *
+from DisappTrks.BackgroundEstimation.config import *
 from DisappTrks.StandardAnalysis.customize import *
 
 if not os.environ["CMSSW_VERSION"].startswith ("CMSSW_12_4_") and not os.environ["CMSSW_VERSION"].startswith ("CMSSW_13_0_"):
