@@ -3,9 +3,12 @@ import argparse
 import logging
 import os
 import time
+from datetime import datetime
+from pathlib import Path
 
 from dotenv import load_dotenv
 from gspread.exceptions import APIError
+import pandas as pd
 
 from lib import crab_helper as ch
 from lib.google_sheet_helper import update_task_status
@@ -122,32 +125,58 @@ if args.command == 'status':
     logger.info("Running crab status")
     crab_directories = ch.grab_crab_directories(crab_directory=args.directory)
 
-    good_status: int = 0
+    finished_status: int = 0
     failed_jobs_status: int = 0
     processing_jobs_status: int = 0
     unknown_status: int = 0
+    index = 0
+
+    # Setup cache to keep status of jobs
+    project_root = Path(__file__).parent.parent
+    cache_dir = project_root / ".cache"
+
+    if cache_dir.exists() and cache_dir.is_dir():
+        logger.info("Cache directory exists. Using preexisting directory")
+    else:
+        cache_dir.mkdir()
+        logger.info(f"Cache directory didn't exist. Created directory at {cache_dir.resolve()}")
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%s")
+    summary_file = cache_dir / f"crab_summary_{timestamp}.json"
+
+    finished_job = 0
+    processing_job = 0
+    failed_job = 0
+    unknown_job = 0
+    all_summaries = []
     for directory in crab_directories:
         logger.debug("Looping over directories")
-        statuses = ch.get_crab_status(directory, run_directory=args.run_dir)
+        statuses:pd.DataFrame = ch.get_crab_status(directory, run_directory=args.run_dir)
 
-        if statuses["AllFinished"]:
+
+        if (statuses["State"] == "finished").all():
             logger.info(f"Task {str(directory).split('/')[-1]} finished")
             status = "Finished"
-            good_status += 1
+            finished_job += 1
 
-        elif bool(statuses["failed"]):
+        elif (statuses['State'] == 'failed').any() and ((statuses['HasUnrecoverableError']).any() or (statuses["TooManyRetries"]).any()):
+            logger.info(f"Task has unrecoverable failed jobs: {str(directory).split('/')[-1]}")
+            status = "Unrecoverable Error"
+            failed_job += 1
+
+        elif (statuses['State'] == 'failed').any():
             logger.info(f"Task has failed jobs: {str(directory).split('/')[-1]}")
             status = "Failed Jobs"
-            failed_jobs_status += 1
+            failed_job += 1
 
-        elif bool(statuses["idle"]) or bool(statuses["running"]) or bool(statuses["transferring"]):
-            logger.info(f"Task is still running: {str(directory).split('/')[-1]}")
-            status = "Processing"
-            processing_jobs_status += 1
-        else:
+        elif statuses['State'].isin(["purged", "unknown", "invalid"]).any():
             logger.info(f"Unknown issue with job {str(directory).split('/')[-1]}")
             status = "Unknown Issue"
-            unknown_status += 1
+            unknown_job += 1
+
+        else:
+            logger.info(f"Task is still running: {str(directory).split('/')[-1]}")
+            status = "Processing"
 
         # When we reach the Google API limit error 429 will be raised
         try:
@@ -160,20 +189,37 @@ if args.command == 'status':
             update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
                                 str(directory), status, force=True)
 
+        try:
+            unrecoverable_job_ids = statuses.loc[statuses["HasUnrecoverableError"], "job_id"].tolist()
+        except KeyError:
+            unrecoverable_job_ids = []
+        task_summary = {
+            "task": str(directory).split('/')[-1],
+            "all_finished": (statuses["State"] == "finished").all(),
+            "n_failed_jobs": (statuses["State"] == "failed").sum(),
+            "n_unrecoverable_errors": len(unrecoverable_job_ids),
+            "unrecoverable_job_ids": unrecoverable_job_ids,
+            "n_total_jobs": len(statuses)
+        }
+        all_summaries.append(task_summary)
+
     if args.email:
         subject = "Crab status"
         body = ("The status of your crab jobs has been recieved."
-                f"There are {good_status} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
+                f"There are {finished_job} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
                 "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
                 "For the jobs with an unknown status, you will probably need to check these jobs manually.")
         send_email(subject, body, os.environ["EMAIL"])
     if args.ntfy:
         body = ("The status of your crab jobs has been recieved."
-                f"There are {good_status} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
+                f"There are {finished_job} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
                 "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
                 "For the jobs with an unknown status, you will probably need to check these jobs manually.")
         send_ntfy_notification(body)
     logger.info("Status command finished")
+
+    with open(summary_file, "w") as f:
+        json.dump(all_summaries, f, indent=2)
 
 if args.command == 'resubmit':
     logger.info("Running crab resbumit")

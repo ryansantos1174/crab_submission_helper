@@ -1,34 +1,52 @@
 #!/usr/bin/env python3
+from datetime import datetime
 import re
 from typing import Optional
 import yaml
+import pandas as pd
+import json
 
-def status_parser(crab_status_output: str) -> dict:
-    # Regex patterns to extract the numeric percentage for each status
-    status_patterns = {
-        "finished": r"finished\s+([\d.]+)%",
-        "failed": r"failed\s+([\d.]+)%",
-        "idle": r"idle\s+([\d.]+)%",
-        "running": r"running\s+([\d.]+)%",
-        "transferring": r"transferring\s+([\d.]+)%",
-    }
+def status_parser(crab_status_output: str) -> pd.DataFrame:
+    """
+    Grab the status of the jobs from the "crab status --json".
+    """
+    # These error codes mean job is taking up too much resources and a resubmit is unlikely to fix the issue
+    UNRECOVERABLE_EXIT_CODES = {50660, 50661, 50662}
+    output = crab_status_output.strip()
 
-    # Extract all percentages found
-    status = {}
-    for key, pattern in status_patterns.items():
-        match = re.search(pattern, crab_status_output)
-        status[key] = float(match.group(1)) if match else 0.0
+    # Look for json object boundaries
+    start = output.find('{')
+    end = output.rfind('}')
+    if start == -1 or end == -1 or end <= start:
+        if "Files are purged" in output:
+            return pd.DataFrame([{"State": "purged", "message": "Files purged from Grid scheduler"}])
+        else:
+            return pd.DataFrame([{"State": "unknown", "message": "No JSON found"}])
 
-    # Determine whether all jobs are finished
-    all_finished = (
-        status["finished"] == 100.0
-        and all(status[k] == 0.0 for k in ["idle", "running", "transferring", "failed"])
+    json_str = output[start:end + 1]
+
+    # Try parsing the JSON section
+    try:
+        data = json.loads(json_str)
+    except json.JSONDecodeError as e:
+        return pd.DataFrame([{"State": "invalid", "message": str(e)}])
+
+    # Build DataFrame
+    df = pd.DataFrame.from_dict(data, orient="index").reset_index()
+    df.rename(columns={"index": "job_id"}, inplace=True)
+
+    df["Retries"] = pd.to_numeric(df["Retries"], errors="coerce").fillna(0)
+    # Flag jobs with more than 5 retries
+    df["TooManyRetries"] = df["Retries"] > 5
+    df["HasUnrecoverableError"] = df["Error"].apply(
+        lambda x: x[0] in UNRECOVERABLE_EXIT_CODES if isinstance(x, list) and x else False
     )
 
-    return {
-        **status,
-        "AllFinished": all_finished
-    }
+    return df
+
+
+def grab_submission_time(status_df:pd.DataFrame)-> datetime:
+
 
 def replace_template_values(template_file_path:str, replacement:dict,
                             save:bool =True, output_file:Optional[str]=None)->None:

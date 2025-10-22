@@ -112,7 +112,7 @@ def submit_crab_job(config_file_path:str, run_directory:Optional[str]=None)->str
     return output
 
 def get_crab_status(crab_directory:str, run_directory:Optional[str]=None)->dict:
-    output = subprocess.run(f"crab status {crab_directory}",
+    output = subprocess.run(f"crab status --json {crab_directory}",
                             shell=True,
                             capture_output=True,
                             cwd=run_directory,
