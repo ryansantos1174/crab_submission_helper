@@ -146,3 +146,18 @@ dataset="/Muon1/Run2023D-22Sep2023_v2-v1/MINIAOD"
 [2023.D.v2.EGamma1]
 dataset="/EGamma1/Run2023D-22Sep2023_v2-v1/MINIAOD"
 
+[2024.C]
+era="C"
+
+[2024.C.v1.Tau0]
+dataset="/Muon0/Run2024C-MINIv6NANOv15-v1/MINIAOD"
+[2024.C.v1.Muon0]
+dataset="/Muon0/Run2024C-MINIv6NANOv15-v1/MINIAOD"
+
+[2024.C.v1.Tau1]
+dataset="/Muon1/Run2024C-MINIv6NANOv15-v1/MINIAOD"
+[2024.C.v1.Muon1]
+dataset="/Muon1/Run2024C-MINIv6NANOv15-v1/MINIAOD"
+
+
+
