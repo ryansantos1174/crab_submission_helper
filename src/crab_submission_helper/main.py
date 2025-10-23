@@ -2,6 +2,7 @@
 import argparse
 import logging
 import os
+import sys
 import json
 import time
 from datetime import datetime
@@ -90,11 +91,15 @@ def main():
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
+
+    file_handler = logging.FileHandler(args.log)
+    console_handler = logging.StreamHandler(sys.stdout)
+
     logging.basicConfig(
-        filename=args.log,
         level=log_level,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[file_handler, console_handler]
     )
     logger = logging.getLogger(__name__)
 
@@ -150,7 +155,6 @@ def main():
         processing_job = 0
         failed_job = 0
         unknown_job = 0
-        all_summaries = []
         for directory in crab_directories:
             logger.debug("Looping over directories")
             statuses:pd.DataFrame = ch.get_crab_status(directory, run_directory=args.run_dir)
@@ -195,15 +199,6 @@ def main():
                 unrecoverable_job_ids = statuses.loc[statuses["HasUnrecoverableError"], "job_id"].tolist()
             except KeyError:
                 unrecoverable_job_ids = []
-            task_summary = {
-                "task": str(directory).split('/')[-1],
-                "all_finished": bool((statuses["State"] == "finished").all()),
-                "n_failed_jobs": (statuses["State"] == "failed").sum(),
-                "n_unrecoverable_errors": len(unrecoverable_job_ids),
-                "unrecoverable_job_ids": unrecoverable_job_ids,
-                "n_total_jobs": len(statuses)
-            }
-            all_summaries.append(task_summary)
 
         if args.email:
             subject = "Crab status"
@@ -220,8 +215,6 @@ def main():
             send_ntfy_notification(body)
         logger.info("Status command finished")
 
-        with open(summary_file, "w") as f:
-            json.dump(all_summaries, f, indent=2)
 
     if args.command == 'resubmit':
         logger.info("Running crab resbumit")
