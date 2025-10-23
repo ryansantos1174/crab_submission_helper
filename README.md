@@ -15,11 +15,14 @@ CREDENTIALS=<SERVICE ACCOUNT CREDENTIALS JSON>
 You only need to set this up once per google sheet per service account (ie. you probably don't have to procure these items yourself ask someone to securely share them with you). 
 ## Installation
 The project can be installed as a local package. From scratch the instructions are: 
-- git clone https://github.com/ryansantos1174/crab_submission_helper.git
-- cd crab_submission_helper
-- python3 -m build
-- pip install -e . 
-
+```bash
+git clone https://github.com/ryansantos1174/crab_submission_helper.git
+cd crab_submission_helper
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m build
+pip install -e . 
+```
 This will give you access the command line function crab_helper which can be used to submit your jobs
 ## Crontab Setup
 TODO 
