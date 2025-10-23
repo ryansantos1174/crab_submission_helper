@@ -18,10 +18,10 @@ The project can be installed as a local package. From scratch the instructions a
 ```bash
 git clone https://github.com/ryansantos1174/crab_submission_helper.git
 cd crab_submission_helper
-python3 -m venv .venv
-python3 -m pip install --upgrade pip
+cmsenv
+scram-venv
+cmsenv
 python3 -m pip install build
-source .venv/bin/activate
 python3 -m build
 pip install -e . 
 ```

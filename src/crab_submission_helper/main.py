@@ -105,10 +105,10 @@ def main():
         # Give the mapping for all possible template files here. The crab_template.py
         # and crab_template_nlayers.py will overwrite each other but the logic to avoid this
         # is inside batch_submit_jobs()
-        template_files = {"data/templates/config_cfg_template.py" : f"{args.run_dir}config_cfg.py",
-                        "data/templates/crab_template.py" : f"{args.run_dir}crab_cfg.py",
-                        "data/templates/config_selections_template.py" : f"{args.run_dir}/../python/config.py",
-                        "data/templates/crab_template_nlayers.py": f"{args.run_dir}crab.py"}
+        template_files = {"/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/config_cfg_template.py" : f"{args.run_dir}config_cfg.py",
+                        "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/crab_template.py" : f"{args.run_dir}crab_cfg.py",
+                        "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/config_selections_template.py" : f"{args.run_dir}/../python/config.py",
+                        "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/crab_template_nlayers.py": f"{args.run_dir}crab.py"}
         ch.batch_submit_jobs(args.batch_file, template_files, test=False, run_directory=args.run_dir)
 
         if args.email:
@@ -197,7 +197,7 @@ def main():
                 unrecoverable_job_ids = []
             task_summary = {
                 "task": str(directory).split('/')[-1],
-                "all_finished": (statuses["State"] == "finished").all(),
+                "all_finished": bool((statuses["State"] == "finished").all()),
                 "n_failed_jobs": (statuses["State"] == "failed").sum(),
                 "n_unrecoverable_errors": len(unrecoverable_job_ids),
                 "unrecoverable_job_ids": unrecoverable_job_ids,

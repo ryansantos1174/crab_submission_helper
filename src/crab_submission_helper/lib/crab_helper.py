@@ -81,7 +81,7 @@ def batch_submit_jobs(
             parser.replace_template_values(template_path, job_dict, save=True, output_file=outfile)
 
         if not test:
-            submit_crab_job(template_files["data/templates/crab_template.py"],
+            submit_crab_job(template_files["/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/crab_template.py"],
                             run_directory=run_directory)  # uncomment and implement your submission logic
 
 def submit_crab_job(config_file_path:str, run_directory:Optional[str]=None)->str:

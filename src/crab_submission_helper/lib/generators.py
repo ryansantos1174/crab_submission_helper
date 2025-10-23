@@ -69,7 +69,7 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
 def add_dataset(values: dict[str, Any]) -> dict[str, Any]:
     required_keys = ["SELECTION", "YEAR", "ERA", "ERA_VERSION", "DATASET_VERSION"]
     current_path = Path(__file__).resolve()
-    project_root = current_path.parent.parent
+    project_root = current_path.parent.parent.parent.parent
 
     selections_file = project_root / "configs" / "selections.toml"
     dataset_file = project_root / "configs" / "datasets.toml"
