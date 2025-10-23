@@ -26,7 +26,7 @@ elif "2024" in request_name:
     
 
 config.Data.inputDBS = 'global'
-config.Data.unitsPerJob = 20
+config.Data.unitsPerJob = 10
 config.Data.splitting = 'LumiBased'
 
 
