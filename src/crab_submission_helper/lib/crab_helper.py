@@ -3,8 +3,8 @@ import subprocess
 import glob
 import datetime
 import logging
-import lib.parse_helper as parser
-import lib.generators as gen
+from . import parse_helper as parser
+from . import generators as gen
 from typing import Optional, Union, Callable, Any
 from pathlib import Path
 
@@ -112,7 +112,7 @@ def submit_crab_job(config_file_path:str, run_directory:Optional[str]=None)->str
     return output
 
 def get_crab_status(crab_directory:str, run_directory:Optional[str]=None)->dict:
-    output = subprocess.run(f"crab status {crab_directory}",
+    output = subprocess.run(f"crab status --json {crab_directory}",
                             shell=True,
                             capture_output=True,
                             cwd=run_directory,

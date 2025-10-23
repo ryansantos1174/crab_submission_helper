@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 import gspread
 from google.oauth2.service_account import Credentials
-from lib.parse_helper import status_parser, parse_crab_task
+from .parse_helper import status_parser, parse_crab_task
 import sys
 from typing import Optional
 import logging
