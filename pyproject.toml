@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "crab_submission_helper"
+version = "0.0.1"
+authors = [
+  { name="Ryan De Los Santos", email="ryansantos1174@gmail.com" },
+]
+description = "A wrapper around crab commands to faciltate submissions, resubmissions, and status monitoring"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "dotenv==0.9.9",
+    "google==3.0.0",
+    "gspread==6.2.1",
+    "numpy==2.3.4",
+    "pandas==2.3.3",
+    "PyYAML==6.0.3",
+    "tomli==2.3.0"
+
+]
+
+[project.scripts]
+crab_helper = "crab_submission_helper.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/crab_submission_helper"]

@@ -46,6 +46,7 @@ def status_parser(crab_status_output: str) -> pd.DataFrame:
 
 
 def grab_submission_time(status_df:pd.DataFrame)-> datetime:
+    ...
 
 
 def replace_template_values(template_file_path:str, replacement:dict,

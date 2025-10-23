@@ -3,8 +3,8 @@ import subprocess
 import glob
 import datetime
 import logging
-import lib.parse_helper as parser
-import lib.generators as gen
+from . import parse_helper as parser
+from . import generators as gen
 from typing import Optional, Union, Callable, Any
 from pathlib import Path
 
