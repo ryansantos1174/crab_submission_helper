@@ -21,6 +21,9 @@ if "2022" in request_name:
     config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
 elif "2023" in request_name:
     config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json"
+elif "2024" in request_name:
+    config.Data.lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json"
+    
 
 config.Data.inputDBS = 'global'
 config.Data.unitsPerJob = 20
