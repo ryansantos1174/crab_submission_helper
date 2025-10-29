@@ -44,6 +44,23 @@ def status_parser(crab_status_output: str) -> pd.DataFrame:
 
     return df
 
+def parse_task_name(task_name:str)-> tuple:
+    """
+    Parse information about the year, era, and selection that a task was ran with
+
+    Especially important for recovery tasks where you may want to submit a task
+    but don't want to have to recreate an entry by hand in the yaml file
+    """
+    pattern ="crab_(?P<selection>.*)_(?P<year>\d{4})(?P<era>[A-Z])_?(?P<version>v\d)?_(?P<dataset>NLayers|EGamma\d|Muon\d)"
+    match = re.match(pattern, task_name)
+    if match:
+        return (match.group("selection"),
+                match.group("year"),
+                match.group("era"),
+                match.group("version"),
+                match.group("dataset"))
+    else:
+        raise ValueError("Unable to parse data from task name")
 
 def grab_submission_time(status_df:pd.DataFrame)-> datetime:
     ...

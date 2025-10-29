@@ -3,7 +3,13 @@
 import unittest
 import re
 from unittest.mock import mock_open, patch
-from lib.parse_helper import status_parser, replace_template_values, parse_crab_task, parse_yaml
+from crab_submission_helper.lib.parse_helper import (
+    status_parser,
+    replace_template_values,
+    parse_crab_task,
+    parse_task_name,
+    parse_yaml
+)
 
 ASSETS_DIRECTORY="tests/testAssets/"
 
@@ -86,8 +92,41 @@ class TestParseHelper(unittest.TestCase):
         data = parse_yaml(ASSETS_DIRECTORY+"example_batch_submission.yaml")
         self.assertEqual({'jobs': [{'Year': '2023C', 'Era Version': 'v1', 'Dataset Version': 1, 'Selections': 'ZtoTauToEleProbeTrk'}, {'Year': '2023D', 'Era': 'v1', 'Dataset Version': 1, 'Selections': 'ZtoTauToMuProbeTrk'}]}, data)
 
+    def test_task_name_valid(self):
+        test_cases = [
+            (
+                "crab_ZtoTauToEleProbeTrk_2023D_v1_NLayers",
+                ("ZtoTauToEleProbeTrk", "2023", "D", "v1", "NLayers"),
+            ),
+            (
+                "crab_ZtoTauToEleProbeTrk_2023D_v2_EGamma0",
+                ("ZtoTauToEleProbeTrk", "2023", "D", "v2", "EGamma0"),
+            ),
+            (
+                "crab_ZtoTauToMuProbeTrk_2023C_v1_Muon0",
+                ("ZtoTauToMuProbeTrk", "2023", "C", "v1", "Muon0"),
+            ),
+            (
+                "crab_ZtoTauToMuProbeTrk_2024C_Muon0",
+                ("ZtoTauToMuProbeTrk", "2024", "C", None, "Muon0"),
+            ),
+        ]
 
+        for task_name, expected in test_cases:
+            with self.subTest(task_name=task_name):
+                data = parse_task_name(task_name)
+                self.assertEqual(data, expected)
 
+    def test_task_name_invalid(self):
+        invalid_names = [
+            "crab_missing_year_EGamma0",
+            "crab_TTJets_20A_v1_Muon0",   # bad year
+            "crab_TTJets_2023D_v1",       # missing selection
+        ]
+        for name in invalid_names:
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError):
+                    parse_task_name(name)
 
 if __name__ == "__main__":
     unittest.main()
