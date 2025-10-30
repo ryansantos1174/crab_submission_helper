@@ -45,6 +45,8 @@ config.JobType.maxMemoryMB = 3000
 config.JobType.numCores = 1
 config.Data.outputDatasetTag = request_name
 
+config.Site.whitelist = ["T2_*", "T3_*"]
+
 
 
 # Uncomment one of the following pairs

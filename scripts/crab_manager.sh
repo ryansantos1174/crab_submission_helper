@@ -11,5 +11,5 @@ crab_helper submit -r /uscms_data/d3/delossan/CMSSW_13_0_13/src/DisappTrks/Backg
     -l /uscms_data/d3/delossan/crab_submit_status.log \
     -d /uscms_data/d3/delossan/CMSSW_13_0_13/src/DisappTrks/BackgroundEstimation/test/crab/ \
     --template /uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates \
-    --batch_file /uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/example_batch_submission.yaml \
+    --batch_file /uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/batch_submission.yaml \
     --email --ntfy

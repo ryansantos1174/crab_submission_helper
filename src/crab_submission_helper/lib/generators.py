@@ -2,6 +2,22 @@ from typing import Any, Callable
 from pathlib import Path
 import tomli
 
+def check_keys(dictionary:dict, key_values:list[str])->bool:
+    # List returns True if non-empty
+    return not bool([k for k in dictionary if k not in key_values])
+
+def add_skim_files(values:str, skim_path:str):
+    """
+    Add path to txt file containing skim files to dictionary
+    """
+    required_keys = ["REQUEST_NAME"]
+    if not check_keys(values, required_keys):
+        logging.error("Missing REQUEST_NAME key. Make sure you run this generator after add_request_name().")
+        raise KeyError(f"Missing required keys in values: REQUEST_NAME")
+
+    #skim_file_path
+    #return {"SKIM_FILE": skim_file_path}
+
 
 def generate_template_values(
     input_values: dict[str, Any],

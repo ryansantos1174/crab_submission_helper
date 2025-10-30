@@ -112,8 +112,7 @@ def main():
         # is inside batch_submit_jobs()
         template_files = {"/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/config_cfg_template.py" : f"{args.run_dir}config_cfg.py",
                         "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/crab_template.py" : f"{args.run_dir}crab_cfg.py",
-                        "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/config_selections_template.py" : f"{args.run_dir}/../python/config.py",
-                        "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/crab_template_nlayers.py": f"{args.run_dir}crab.py"}
+                        "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/config_selections_template.py" : f"{args.run_dir}/../python/config.py"}
         ch.batch_submit_jobs(args.batch_file, template_files, test=False, run_directory=args.run_dir)
 
         if args.email:
@@ -224,7 +223,7 @@ def main():
         for directory in crab_directories:
             # TODO: Implement way to apply resubmission criteria like maxmemory or siteblacklist
             # without affecting all submissions
-            return_code, command = ch.crab_resubmit(str(directory), run_directory=args.run_dir)
+            return_code, command = ch.crab_resubmit(str(directory), resubmit_options={"maxmemory": 4000}, run_directory=args.run_dir)
 
             logger.debug(f"Ran crab command: {command}")
             logger.debug(f"Crab command returned status: {return_code}")
@@ -237,15 +236,9 @@ def main():
 
         if args.email:
             subject = "Crab status"
-            body = ("The status of your crab jobs has been recieved."
-                    f"There are {good_status} finished tasks, {bad_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
-                    "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
-                    "For the jobs with an unknown status, you will probably need to check these jobs manually.")
+            body = ("Your crab jobs have been resubmitted")
             send_email(subject, body, os.environ["EMAIL"])
         if args.ntfy:
-            body = ("The status of your crab jobs has been recieved."
-                    f"There are {good_status} finished tasks, {bad_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
-                    "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
-                    "For the jobs with an unknown status, you will probably need to check these jobs manually.")
+            body = ("Your crab jobs have been resubmitted")
             send_ntfy_notification(body)
         logger.info("Resubmit command finished")
