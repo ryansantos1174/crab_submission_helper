@@ -14,74 +14,98 @@ import pandas as pd
 
 from .lib import crab_helper as ch
 from .lib.google_sheet_helper import update_task_status
+from .lib.parse_helper import replace_template_values, parse_task_name
 from .lib.notifications import send_ntfy_notification, send_email
 
 load_dotenv()
+
 ##################################
 #  Setup command line interface  #
 ##################################
-# Shared arguments go here
-def main():
-    parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument(
-        "-d", "--directory",
-        required=True,
+ def add_common_arguments(parser):
+    """Add arguments shared by all subcommands."""
+    parser.add_argument(
+        "-d", "--directory", required=True,
         help="Path to the CRAB project directory"
     )
-
-    parent_parser.add_argument(
+    parser.add_argument(
         "-v", "--verbose", action="store_true",
         help="Verbose logging messages"
     )
-    parent_parser.add_argument(
-        "-l", "--log",
-        default="crab_helper.log",
+    parser.add_argument(
+        "-l", "--log", default="crab_helper.log",
         help="Path to log file"
     )
-
-    parent_parser.add_argument(
+    parser.add_argument(
         "-r", "--rundir", default=None, dest="run_dir",
         help="Path to directory where commands will be run"
     )
-
-    parent_parser.add_argument(
-        "--email", default=False, action="store_true",
-        help="Whether to send a notification to your email"
+    parser.add_argument(
+        "--email", action="store_true",
+        help="Send a notification to your email"
     )
-
-    parent_parser.add_argument(
-        "--ntfy", default=False, action="store_true",
-        help="Whether to send a notification to your ntfy server"
+    parser.add_argument(
+        "--ntfy", action="store_true",
+        help="Send a notification to your ntfy server"
     )
+    return parser
 
+def add_submit_subparser(subparsers, parent):
+    parser = subparsers.add_parser(
+        "submit",
+        parents=[parent],
+        help="Initial submission of CRAB job"
+    )
+    parser.add_argument("--template", type=str, help="Path to template directory")
+    parser.add_argument("--batch-file", type=str, help="Path to batch submission yaml file")
+    return parser
+
+def add_resubmit_subparser(subparsers, parent):
+    parser = subparsers.add_parser(
+        "resubmit",
+        parents=[parent],
+        help="Resubmit CRAB jobs"
+    )
+    parser.add_argument("--maxmemory", type=int, help="Override max memory for jobs")
+    parser.add_argument("--siteblacklist", nargs="+", help="Sites to exclude")
+    parser.add_argument("--sitewhitelist", nargs="+", help="Sites to prefer")
+    return parser
+
+def add_status_subparser(subparsers, parent):
+    parser = subparsers.add_parser(
+        "status",
+        parents=[parent],
+        help="Check status of CRAB jobs"
+    )
+    return parser
+
+def add_recovery_subparser(subparsers, parent):
+    parser = subparsers.add_parser(
+        "recover",
+        parents=[parent],
+        help="Create a recovery task for for the given crab task"
+    )
+    parser.add_argument("--crab_task", type=str, help="Crab task to generate recovery task for", required=True)
+
+def build_parser():
+    """Construct the top-level parser."""
+    # shared base
+    parent_parser = add_common_arguments(argparse.ArgumentParser(add_help=False))
+
+    # main parser
     parser = argparse.ArgumentParser(description="CRAB job management tool")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # Each subcommand reuses the parent parser
-    parser_submit = subparsers.add_parser(
-        "submit",
-        parents=[parent_parser],
-        help="Initial submission of crab job"
-    )
-    parser_submit.add_argument("--template", type=str, help="Path to template directory")
-    parser_submit.add_argument("--batch_file", type=str, help="Path to batch submission yaml file")
+    # register subcommands
+    add_submit_subparser(subparsers, parent_parser)
+    add_resubmit_subparser(subparsers, parent_parser)
+    add_status_subparser(subparsers, parent_parser)
+    add_recovery_subparser(subparsers, parent_parser)
 
-    parser_resubmit = subparsers.add_parser(
-        "resubmit",
-        parents=[parent_parser],
-        help="Resubmit CRAB jobs"
-    )
-    parser_resubmit.add_argument("--maxmemory", type=int)
-    parser_resubmit.add_argument("--siteblacklist", nargs="+")
-    parser_resubmit.add_argument("--sitewhitelist", nargs="+")
+    return parser
 
-
-    parser_status = subparsers.add_parser(
-        "status",
-        parents=[parent_parser],
-        help="Resubmit CRAB jobs"
-    )
-
+def main():
+    parser=build_parser()
     args = parser.parse_args()
 
     ###############
@@ -110,9 +134,12 @@ def main():
         # Give the mapping for all possible template files here. The crab_template.py
         # and crab_template_nlayers.py will overwrite each other but the logic to avoid this
         # is inside batch_submit_jobs()
-        template_files = {"/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/config_cfg_template.py" : f"{args.run_dir}config_cfg.py",
-                        "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/crab_template.py" : f"{args.run_dir}crab_cfg.py",
-                        "/uscms_data/d3/delossan/CMSSW_13_0_13/src/crab_submission_helper/data/templates/config_selections_template.py" : f"{args.run_dir}/../python/config.py"}
+
+        template_files = {
+            "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
+            "crab_template.py": Path(args.run_dir) / "crab_cfg.py",
+            "config_selections_template.py": Path(args.run_dir) / "../python/config.py",
+        }
         ch.batch_submit_jobs(args.batch_file, template_files, test=False, run_directory=args.run_dir)
 
         if args.email:
@@ -213,6 +240,31 @@ def main():
                     "For the jobs with an unknown status, you will probably need to check these jobs manually.")
             send_ntfy_notification(body)
         logger.info("Status command finished")
+
+    if args.command == 'recover':
+        # Should only pass a single crab directory don't need to recover every job in crab directory
+        # Parse task name to determine selection, year, era, and NLayers
+        selection, year, era, version, dataset  = parse_task_name(args.crab_task)
+
+        template_files = {
+            "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
+            "crab_template.py" : Path(args.run_dir) / "crab_cfg.py",
+            "config_selections_template.py": Path(args.run_dir) / "../python/config.py"
+        }
+
+        replace_template_values(template_files, replacement)
+        ch.submit_crab_job()
+        args.crab_task
+
+        # Run crab recovery command to generate necessary json files
+
+
+        # Check whether it is an NLayers or not which will tell you whether you need to check the files
+        # or the lumisection to process
+
+        # Template file should be nearly identical so that the files get
+        # placed in the same output directory but there needs to be a new
+        # requestName so as to not collide with previous task.
 
 
     if args.command == 'resubmit':
