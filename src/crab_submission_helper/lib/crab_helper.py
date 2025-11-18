@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def batch_submit_jobs(
     batch_file: str,
     template_files: dict[str, str],
-    generating_functions: Union[Callable, list[Callable], None] = [gen.add_dataset, gen.add_request_name],
+    generating_functions: Union[Callable, list[Callable], None] = [gen.add_dataset, gen.add_request_name, gen.add_lumi_mask],
     test: bool = False,
     run_directory=None
 ):
