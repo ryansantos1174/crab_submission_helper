@@ -3,10 +3,12 @@ import subprocess
 import glob
 import datetime
 import logging
-from . import parse_helper as parser
-from . import generators as gen
 from typing import Optional, Union, Callable, Any
 from pathlib import Path
+
+from . import parse_helper as parser
+from . import generators as gen
+from . import config as conf
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,7 @@ def batch_submit_jobs(
     logging.info(f"Processed {len(job_replacements)} job replacements.")
 
     # Save templates for each job
-    timestamp_dir = Path(f"data/generated/{datetime.datetime.now().strftime('%Y%m%d_%H%M')}/")
+    timestamp_dir = conf.PROJECT_ROOT / "src" / "crab_submission_helper" / "data" / "generated" / datetime.datetime.now().strftime('%Y%m%d_%H%M')
     timestamp_dir.mkdir(parents=True, exist_ok=True)
     for job_dict in job_replacements:
         for template_path, output_path in template_files.items():
