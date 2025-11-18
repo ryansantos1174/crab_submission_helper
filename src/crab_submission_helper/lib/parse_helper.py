@@ -88,7 +88,9 @@ def replace_template_values(template_file_path:str, replacement:dict,
 
     def replace_var(match):
         key = match.group(1)  # extract variable name between __ __
-        return str(replacement.get(key, match.group(0)))  # replace if found, else keep original
+        value = replacement.get(key, match.group(0))
+        return repr(value) # replace if found, else keep original
+
 
     subbed_text = re.sub(template_pattern, replace_var, text)
 
