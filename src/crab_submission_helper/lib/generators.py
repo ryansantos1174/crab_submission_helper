@@ -2,6 +2,7 @@ from typing import Any, Callable
 from pathlib import Path
 import tomli
 import logging
+from . import config as conf
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +41,7 @@ def generate_template_values(
 
 def add_lumi_mask(values: dict[str, Any]) -> dict[str, Any]:
     required_keys = ["YEAR"]
-    current_path = Path(__file__).resolve()
-    project_root = current_path.parent.parent.parent.parent
-
-    dataset_file = project_root / "configs" / "datasets.toml"
+    dataset_file = conf.PROJECT_ROOT / "configs" / "datasets.toml"
 
     with dataset_file.open("rb") as f:
         dataset_data = tomli.load(f)
@@ -100,12 +98,9 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
     return {"REQUEST_NAME": request_name}
 
 def add_dataset(values: dict[str, Any]) -> dict[str, Any]:
-    required_keys = ["SELECTION", "YEAR", "ERA", "ERA_VERSION", "DATASET_VERSION"]
-    current_path = Path(__file__).resolve()
-    project_root = current_path.parent.parent.parent.parent
-
-    selections_file = project_root / "configs" / "selections.toml"
-    dataset_file = project_root / "configs" / "datasets.toml"
+    required_keys = ["SELEeTION", "YEAR", "ERA", "ERA_VERSION", "DATASET_VERSION"]
+    dataset_file = conf.PROJECT_ROOT / "configs" / "datasets.toml"
+    selections_file = conf.PROJECT_ROOT / "configs" / "selections.toml"
 
     with selections_file.open("rb") as f:
         data = tomli.load(f)
