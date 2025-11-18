@@ -2,6 +2,7 @@ from typing import Any, Callable
 from pathlib import Path
 import tomli
 import logging
+
 from . import config as conf
 
 logger = logging.getLogger(__name__)
