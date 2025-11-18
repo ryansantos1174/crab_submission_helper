@@ -22,7 +22,7 @@ load_dotenv()
 ##################################
 #  Setup command line interface  #
 ##################################
- def add_common_arguments(parser):
+def add_common_arguments(parser):
     """Add arguments shared by all subcommands."""
     parser.add_argument(
         "-d", "--directory", required=True,
