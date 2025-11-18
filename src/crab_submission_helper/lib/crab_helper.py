@@ -46,23 +46,6 @@ def batch_submit_jobs(
     timestamp_dir = Path(f"data/generated/{datetime.datetime.now().strftime('%Y%m%d_%H%M')}/")
     timestamp_dir.mkdir(parents=True, exist_ok=True)
     for job_dict in job_replacements:
-        # There are two competing template files, one for NLayers submissions and one for the base selections
-        # we need to get rid of one of the template file entries otherwise they will overwrite each other
-        # TODO: Don't hardcode the paths here
-        n_layers = job_dict.get("NLayers")
-
-        # Choose which template to remove
-        if n_layers:
-            template_to_remove = "data/templates/crab_template.py"
-        else:
-            template_to_remove = "data/templates/crab_template_nlayers.py"
-
-        # Remove it safely if it exists
-        removed = template_files.pop(template_to_remove, None)
-        if removed is not None:
-            logger.debug("Removed template: %s", template_to_remove)
-        else:
-            logger.warning("Template not found in dictionary: %s", template_to_remove)
         for template_path, output_path in template_files.items():
             # Save one copy for use in job
             parser.replace_template_values(template_path, job_dict, save=True, output_file=output_path)
