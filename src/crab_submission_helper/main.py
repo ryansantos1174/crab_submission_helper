@@ -56,7 +56,9 @@ def add_submit_subparser(subparsers, parent):
         parents=[parent],
         help="Initial submission of CRAB job"
     )
-    parser.add_argument("--template", type=str, help="Path to template directory")
+    parser.add_argument("--template", type=str,
+                        default=Path(__file__).parent / "data" / "templates",
+                        help="Path to template directory")
     parser.add_argument("--batch-file", type=str, help="Path to batch submission yaml file")
     parser.add_argument("--test", action="store_true", help="Generate submission files but do not submit them")
     return parser
@@ -137,9 +139,9 @@ def main():
         # is inside batch_submit_jobs()
 
         template_files = {
-            "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
-            "crab_template.py": Path(args.run_dir) / "crab_cfg.py",
-            "config_selections_template.py": Path(args.run_dir) / "../python/config.py",
+            Path(args.template) / "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
+            Path(args.template) / "crab_template.py": Path(args.run_dir) / "crab_cfg.py",
+            Path(args.template) / "config_selections_template.py": Path(args.run_dir) / "../python/config.py",
         }
         ch.batch_submit_jobs(args.batch_file, template_files, test=args.test, run_directory=args.run_dir)
 
