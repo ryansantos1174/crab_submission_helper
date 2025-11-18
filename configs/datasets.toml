@@ -1,5 +1,8 @@
 # Selection should be controlled from python code so I don't have to manually edit the config file
 
+[2022]
+lumiMask = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
+
 [2022.C]
 era = "C"
 
@@ -49,6 +52,9 @@ dataset="/Muon/Run2022G-19Dec2023-v2/MINIAOD"
 dataset="/Muon/Run2022G-19Dec2023-v2/MINIAOD"
 [2022.G.EGamma]
 dataset="/EGamma/Run2022G-19Dec2023-v1/MINIAOD"
+
+[2023]
+lumiMask="https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json"
 
 [2023.C]
 era ="C"
@@ -145,6 +151,9 @@ dataset="/Muon1/Run2023D-22Sep2023_v2-v1/MINIAOD"
 dataset="/Muon1/Run2023D-22Sep2023_v2-v1/MINIAOD"
 [2023.D.v2.EGamma1]
 dataset="/EGamma1/Run2023D-22Sep2023_v2-v1/MINIAOD"
+
+[2024]
+lumiMask= "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json"
 
 [2024.C]
 era="C"
