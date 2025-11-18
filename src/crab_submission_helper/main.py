@@ -58,6 +58,7 @@ def add_submit_subparser(subparsers, parent):
     )
     parser.add_argument("--template", type=str, help="Path to template directory")
     parser.add_argument("--batch-file", type=str, help="Path to batch submission yaml file")
+    parser.add_argument("--test", action="store_true", help="Generate submission files but do not submit them")
     return parser
 
 def add_resubmit_subparser(subparsers, parent):
@@ -140,15 +141,15 @@ def main():
             "crab_template.py": Path(args.run_dir) / "crab_cfg.py",
             "config_selections_template.py": Path(args.run_dir) / "../python/config.py",
         }
-        ch.batch_submit_jobs(args.batch_file, template_files, test=False, run_directory=args.run_dir)
+        ch.batch_submit_jobs(args.batch_file, template_files, test=args.test, run_directory=args.run_dir)
 
-        if args.email:
+        if args.email and not args.test:
             subject = "Crab submission finished"
             body = ("Your crab submission has finished submitting!\n"
                     "You can keep track of the jobs using the status command and you can resubmit"
                     "any potentially failed jobs with resubmit")
             send_email(subject, body, os.environ["EMAIL"])
-        if args.ntfy:
+        if args.ntfy and not args.test:
             send_ntfy_notification("Your crab submission has finished submitting!\n"
                     "You can keep track of the jobs using the status command and you can resubmit"
                     "any potentially failed jobs with resubmit")
