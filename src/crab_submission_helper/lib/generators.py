@@ -1,6 +1,9 @@
 from typing import Any, Callable
 from pathlib import Path
 import tomli
+import logging
+
+logger = logging.getLogger(__name__)
 
 def check_keys(dictionary:dict, key_values:list[str])->bool:
     # List returns True if non-empty
@@ -17,7 +20,6 @@ def add_skim_files(values:str, skim_path:str):
 
     #skim_file_path
     #return {"SKIM_FILE": skim_file_path}
-
 
 def generate_template_values(
     input_values: dict[str, Any],
@@ -36,6 +38,21 @@ def generate_template_values(
     temp_dict = generating_function(input_values)
     return input_values | temp_dict
 
+def add_lumi_mask(values: dict[str, Any]) -> dict[str, Any]:
+    required_keys = ["YEAR"]
+    current_path = Path(__file__).resolve()
+    project_root = current_path.parent.parent.parent.parent
+
+    dataset_file = project_root / "configs" / "datasets.toml"
+
+    with dataset_file.open("rb") as f:
+        dataset_data = tomli.load(f)
+
+    year = values["YEAR"]
+    logger.debug(f"Selection Year: {year}")
+    lumi_mask = dataset_data[str(year)]["lumiMask"]
+    logger.debug(f"Lumi Mask: {lumi_mask}")
+    return {"LUMIMASK": lumi_mask}
 
 def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
     """
