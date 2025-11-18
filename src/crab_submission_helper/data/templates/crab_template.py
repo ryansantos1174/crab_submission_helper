@@ -4,8 +4,8 @@ import os
 from CRABClient.UserUtilities import config
 config = config()
 
-NLayers= "__NLayers__"
-request_name = "__REQUEST_NAME__"
+NLayers= __NLAYERS__
+request_name = __REQUEST_NAME__
 config.General.requestName = request_name
 config.General.workArea = "crab"
 config.General.transferOutputs = True
@@ -18,14 +18,14 @@ config.JobType.allowUndistributedCMSSW = True
 
 
 if not NLayers:
-    config.Data.inputDataset = "__DATASET__"
-    config.Data.lumiMask = "__LUMIMASK__"
+    config.Data.inputDataset = __DATASET__
+    config.Data.lumiMask = __LUMIMASK__
     config.Data.inputDBS = "global"
     config.Data.splitting = "LumiBased"
     config.Data.unitsPerJob=10
 else:
     config.Data.inputDBS = "phys03"
-    config.Data.userInputFiles = open("__SKIM_FILE__").readlines()
+    config.Data.userInputFiles = open(__SKIM_FILE__).readlines()
     config.Data.splitting = "FileBased"
     config.Data.unitsPerJob = 1
 
