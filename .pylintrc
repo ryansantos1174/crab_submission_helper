@@ -1,0 +1,63 @@
+[MASTER]
+# Files and directories to ignore
+ignore=configs, tests, src/crab_submission_helper/data
+
+ignore-patterns=^setup\.py$
+
+# Allow loading pylint plugins (popular: pylint.extensions.*)
+load-plugins=
+    pylint.extensions.docparams,
+    pylint.extensions.mccabe
+
+
+[MESSAGES CONTROL]
+# Disable common noisy warnings — re-enable as needed
+disable=
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    R0914,  # too-many-locals
+    R0912,  # too-many-branches
+    R0915,  # too-many-statements
+    W0511,  # TODO comments
+    E0401,  # import-error (often wrong with editable installs)
+    C0301,  # line-too-long (use black instead to enforce)
+
+# Enable useful additional checks
+enable=
+    useless-suppression,
+    useless-import-alias
+
+
+[REPORTS]
+# Disable useless global score report
+reports=no
+
+
+[FORMAT]
+# Line length and formatting constraints
+max-line-length=100
+indent-string="    "
+
+
+[TYPECHECK]
+# Ignore import resolution issues for external libs
+ignored-modules=
+ignored-classes=
+generated-members=numpy.*,torch.*,tensorflow.*
+
+
+[DESIGN]
+# Allow more complex functions (relax strict defaults)
+max-args=10
+max-attributes=15
+max-locals=25
+max-branches=20
+max-statements=80
+min-public-methods=0
+
+
+[EXCEPTIONS]
+overgeneral-exceptions=Exception
