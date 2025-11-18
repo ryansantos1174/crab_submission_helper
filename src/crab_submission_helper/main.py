@@ -175,7 +175,7 @@ def main():
             logger.info("Cache directory exists. Using preexisting directory")
         else:
             cache_dir.mkdir()
-            logger.info(f"Cache directory didn't exist. Created directory at {cache_dir.resolve()}")
+            logger.info("Cache directory didn't exist. Created directory at %s", cache_dir.resolve())
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%s")
         summary_file = cache_dir / f"crab_summary_{timestamp}.json"
@@ -190,27 +190,27 @@ def main():
 
 
             if (statuses["State"] == "finished").all():
-                logger.info(f"Task {str(directory).split('/')[-1]} finished")
+                logger.info("Task %s finished", str(directory).split('/')[-1])
                 status = "Finished"
                 finished_job += 1
 
             elif (statuses['State'] == 'failed').any() and ((statuses['HasUnrecoverableError']).any() or (statuses["TooManyRetries"]).any()):
-                logger.info(f"Task has unrecoverable failed jobs: {str(directory).split('/')[-1]}")
+                logger.info("Task has unrecoverable failed jobs: %s", str(directory).split('/')[-1])
                 status = "Unrecoverable Error"
                 failed_job += 1
 
             elif (statuses['State'] == 'failed').any():
-                logger.info(f"Task has failed jobs: {str(directory).split('/')[-1]}")
+                logger.info("Task has failed jobs: %s", str(directory).split('/')[-1])
                 status = "Failed Jobs"
                 failed_job += 1
 
             elif statuses['State'].isin(["purged", "unknown", "invalid"]).any():
-                logger.info(f"Unknown issue with job {str(directory).split('/')[-1]}")
+                logger.info("Unknown issue with job %s", str(directory).split('/')[-1])
                 status = "Unknown Issue"
                 unknown_job += 1
 
             else:
-                logger.info(f"Task is still running: {str(directory).split('/')[-1]}")
+                logger.info("Task is still running: %s", str(directory).split('/')[-1])
                 status = "Processing"
 
             # When we reach the Google API limit error 429 will be raised

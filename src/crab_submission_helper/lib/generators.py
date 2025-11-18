@@ -47,9 +47,9 @@ def add_lumi_mask(values: dict[str, Any]) -> dict[str, Any]:
         dataset_data = tomli.load(f)
 
     year = values["YEAR"]
-    logger.debug(f"Selection Year: {year}")
+    logger.debug("Selection Year: %s", year)
     lumi_mask = dataset_data[str(year)]["lumiMask"]
-    logger.debug(f"Lumi Mask: {lumi_mask}")
+    logger.debug("Lumi Mask: %s", lumi_mask)
     return {"LUMIMASK": lumi_mask}
 
 def add_request_name(values: dict[str, Any]) -> dict[str, Any]:

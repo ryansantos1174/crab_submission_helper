@@ -47,7 +47,7 @@ def edit_cell(worksheet, row:int, column:int, value:str, force:bool = False)->No
         worksheet.update_cell(row, column, value)
     else:
         if worksheet.cell(row, column).value:
-            logger.warning(f"Cell {row}, {column} already has a value inside. If you would like to override pass force=True to edit_cell()")
+            logger.warning("Cell %s, %s already has a value inside. If you would like to override pass force=True to edit_cell()", row, column)
         else:
             worksheet.update_cell(row, column, value)
 
@@ -82,19 +82,19 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status, force=
 
     selection, era, version, dataset_version = parse_crab_task(task_name)
     if not all([selection,era,version,dataset_version]):
-        logger.error(f"Unable to parse all information from task name: {task_name}")
+        logger.error("Unable to parse all information from task name: %s", task_name)
         return
 
     worksheet_index = find_worksheet(sheet, era, version)
     worksheet = sheet.get_worksheet(worksheet_index)
 
     if worksheet_index is None:
-        logger.error(f"Not able to find worksheet that matches given era and version: {era}, {version}")
+        logger.error("Not able to find worksheet that matches given era and version: %s, %s", era, version)
         return
 
     row, column = find_cell(worksheet, selection)
     if not all([row, column]):
-        logger.error(f"Not able to find selection inside of sheet: {selection}")
+        logger.error("Not able to find selection inside of sheet: %s", selection)
         return
 
     # Determine whether you are processing NLayers, EGamma/Muon0 or EGamma/Muon1
@@ -105,6 +105,6 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status, force=
     elif "NLayers" in selection:
         col_offset = 3
     else:
-        logger.error(f"Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): {task_name}")
+        logger.error("Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): %s", task_name)
 
     edit_cell(worksheet, row, column+col_offset, status, force=force)
