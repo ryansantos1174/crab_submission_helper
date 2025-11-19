@@ -5,6 +5,12 @@ from typing import Optional
 import yaml
 import pandas as pd
 import json
+import logging
+from pathlib import Path
+from . import config as conf
+
+
+logger = logging.getLogger(__name__)
 
 def status_parser(crab_status_output: str) -> pd.DataFrame:
     """
@@ -61,6 +67,34 @@ def parse_task_name(task_name:str)-> tuple:
                 match.group("dataset"))
     else:
         raise ValueError("Unable to parse data from task name")
+
+
+def parse_template_files(template_directory:Path, run_directory:Path,
+                        template_yaml_file:Path) -> dict:
+    """
+    Parse yaml file for the template files that you would like to process
+    and their corresponding output positions
+
+    Args:
+        template_directory: Path object where template files are stored
+        run_directory: Path object where the cmsRun command will be ran from
+
+    Returns:
+        dict: Dictionary with keys being the template file name relative to the template
+              directory and values being the output destination
+    """
+
+    config = parse_yaml(template_yaml_file)
+    entries = config["templates"]
+
+    output_dict = {
+        (Path(template_directory) / entry["input"]).resolve():
+        (Path(run_directory) / entry["output"]).resolve()
+        for entry in entries
+    }
+    logger.debug("Template file path dictionary %s", output_dict)
+
+    return output_dict
 
 def grab_submission_time(status_df:pd.DataFrame)-> datetime:
     ...

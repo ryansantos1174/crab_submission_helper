@@ -60,6 +60,8 @@ def add_submit_subparser(subparsers, parent):
     parser.add_argument("--template", type=str,
                         default=Path(__file__).parent / "data" / "templates",
                         help="Path to template directory")
+    parser.add_argument("--template_config_file", type=Path,
+                         default= conf.PROJECT_ROOT / "configs" / "templates.yml")
     parser.add_argument("--batch_file", type=str, help="Path to batch submission yaml file")
     parser.add_argument("--test", action="store_true", help="Generate submission files but do not submit them")
     return parser
@@ -139,11 +141,8 @@ def main():
         # and crab_template_nlayers.py will overwrite each other but the logic to avoid this
         # is inside batch_submit_jobs()
 
-        template_files = {
-            Path(args.template) / "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
-            Path(args.template) / "crab_template.py": Path(args.run_dir) / "crab_cfg.py",
-            Path(args.template) / "config_selections_template.py": Path(args.run_dir) / "../python/config.py",
-        }
+        template_files = parse_template_files(args.template, args.run_dir, args.template_config_file)
+
         ch.batch_submit_jobs(args.batch_file, template_files, test=args.test, run_directory=args.run_dir)
 
         if args.email and not args.test:
