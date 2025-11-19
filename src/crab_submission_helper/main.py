@@ -60,7 +60,7 @@ def add_submit_subparser(subparsers, parent):
     parser.add_argument("--template", type=str,
                         default=Path(__file__).parent / "data" / "templates",
                         help="Path to template directory")
-    parser.add_argument("--batch-file", type=str, help="Path to batch submission yaml file")
+    parser.add_argument("--batch_file", type=str, help="Path to batch submission yaml file")
     parser.add_argument("--test", action="store_true", help="Generate submission files but do not submit them")
     return parser
 
