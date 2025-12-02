@@ -7,9 +7,12 @@ from google.oauth2.service_account import Credentials
 from .parse_helper import status_parser, parse_crab_task
 import sys
 from typing import Optional
+from enum import Enum
 import logging
+from config import JobStatus
 
 logger = logging.getLogger(__name__)
+
 def setup_google_sheet(sheet_id:str, credentials_file:str)->gspread.worksheet:
     # Your service account needs to have this api enabled. If you reference the
     # sheet by ID, you don't need any other apis enabled
@@ -51,8 +54,9 @@ def edit_cell(worksheet, row:int, column:int, value:str, force:bool = False)->No
         else:
             worksheet.update_cell(row, column, value)
 
-
-
+def format_cell(worksheet, row:int, column:int, attribute_dict:dict):
+    a1_notation:str = gspread.utils.rowcol_to_a1(row, column)
+    worksheet.format(a1_notation, attribute_dict)
 
 def find_cell(worksheet, task_name:str)->Optional[tuple[int, ...]]:
     """
@@ -68,7 +72,7 @@ def find_cell(worksheet, task_name:str)->Optional[tuple[int, ...]]:
         return None, None
 
 
-def update_task_status(worksheet_ID, credentials_file, task_name, status, force=False)->None:
+def update_task_status(worksheet_ID, credentials_file, task_name, status, entry, force=False)->None:
     """
     Update the status of a selection in a worksheet.
 
@@ -107,4 +111,30 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status, force=
     else:
         logger.error("Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): %s", task_name)
 
-    edit_cell(worksheet, row, column+col_offset, status, force=force)
+    edit_cell(worksheet, row, column+col_offset, entry, force=force)
+
+    # Format cell based off of status
+    if status == JobStatus.Finished:
+        format_dict = {"backgroundColor": {
+            "red": 0.0,
+            "green": 1.0,
+            "blue":0.0
+        }
+                       }
+    elif status == JobStatus.Processing:
+        format_dict = {
+            "backgroundColor": {
+                "red": 1.0,
+                "green": 1.0,
+                "blue": 0.0
+            }
+        }
+    elif status == JobStatus.Failed:
+        format_dict = {
+            "backgroundColor": {
+                "red": 1.0,
+                "green": 0.0,
+                "blue": 0.0
+            }
+        }
+    format_cell(worksheet, row, column+col_offset, format_dict)

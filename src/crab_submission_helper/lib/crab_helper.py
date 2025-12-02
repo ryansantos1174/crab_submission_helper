@@ -3,6 +3,7 @@ import subprocess
 import glob
 import datetime
 import logging
+import re
 from typing import Optional, Union, Callable, Any
 from pathlib import Path
 
@@ -110,8 +111,20 @@ def get_crab_output_directory(crab_directory:str, run_directory:Optional[str]=No
                             capture_output=True,
                             cwd=run_directory,
                             text=True).stdout
+
+    # NOTE: Since we this regex looks for /store/group/lpclonglived/DisappTrks if we
+    # eventually change storage locations, this will break.
+    pattern = re.compile(r"/store/group/lpclonglived/DisappTrks/[^/]+/[^/]+/")
+    match = pattern.search(output)
+
+    if match:
+        print("Matched:", match.group(0))
+    else:
+        print("No match found.")
+
+    logger.debug("Output Directory: %", match.group(0))
     # Parse output for LFN
-    return path
+    return match.group(0)
 
 def crab_resubmit(crab_directory:str, resubmit_options:Optional[dict]=None, run_directory:Optional[str]=None)->bool:
     # Start building the command

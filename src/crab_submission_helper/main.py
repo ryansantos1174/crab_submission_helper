@@ -13,9 +13,10 @@ from gspread.exceptions import APIError
 import pandas as pd
 
 from .lib import crab_helper as ch
-from .lib.google_sheet_helper import update_task_status
+from .lib import google_sheet_helper as gsh
 from .lib.parse_helper import replace_template_values, parse_task_name
 from .lib.notifications import send_ntfy_notification, send_email
+from .lib.config import JobStatus
 
 load_dotenv()
 
@@ -188,25 +189,26 @@ def main():
             logger.debug("Looping over directories")
             statuses:pd.DataFrame = ch.get_crab_status(directory, run_directory=args.run_dir)
 
+            output_directory:str = ch.get_grab_output_directory(directory, run_directory=args.run_dir)
 
             if (statuses["State"] == "finished").all():
                 logger.info("Task %s finished", str(directory).split('/')[-1])
-                status = "Finished"
+                status = JobStatus.Finished
                 finished_job += 1
 
             elif (statuses['State'] == 'failed').any() and ((statuses['HasUnrecoverableError']).any() or (statuses["TooManyRetries"]).any()):
                 logger.info("Task has unrecoverable failed jobs: %s", str(directory).split('/')[-1])
-                status = "Unrecoverable Error"
+                status = JobStatus.Failed
                 failed_job += 1
 
             elif (statuses['State'] == 'failed').any():
                 logger.info("Task has failed jobs: %s", str(directory).split('/')[-1])
-                status = "Failed Jobs"
+                status = JobStatus.Failed
                 failed_job += 1
 
             elif statuses['State'].isin(["purged", "unknown", "invalid"]).any():
                 logger.info("Unknown issue with job %s", str(directory).split('/')[-1])
-                status = "Unknown Issue"
+                status = JobStatus.Unknown
                 unknown_job += 1
 
             else:
@@ -215,14 +217,15 @@ def main():
 
             # When we reach the Google API limit error 429 will be raised
             try:
-                update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
-                                    str(directory), status, force=True)
+                gsh.update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
+                                    str(directory), output_directory, force=True)
+                gsh.format
             except APIError as e:
                 # Wait a minute for the API request limit to reset
                 logger.debug("Google sheet API rate limit reached waiting 1 minute to proceed")
                 time.sleep(60)
-                update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
-                                    str(directory), status, force=True)
+                gsh.update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
+                                       str(directory), status, output_directory, force=True)
 
             try:
                 unrecoverable_job_ids = statuses.loc[statuses["HasUnrecoverableError"], "job_id"].tolist()
