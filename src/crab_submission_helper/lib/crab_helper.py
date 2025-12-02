@@ -156,6 +156,22 @@ def grab_crab_directories(glob_pattern:str = "*", crab_directory:str="crab/")->l
     BASE_DIR = Path(crab_directory)
     return list(BASE_DIR.glob(glob_pattern))
 
+def find_files(regex:str, directoyr:str):
+    output = subprocess.run(f"eos root://cmseos.fnal.gov find --xurl --name \"{regex}\" \"{directory}\"",
+                            shell=True,
+                            capture_output=True,
+                            cwd=run_directory,
+                            text=True).stdout
+    with open("listOfInputFiles.txt", "w") as file:
+        file.write("\n".join(output.splitlines()))  # Write each entry on a new line
+
+def merge_files(output_file: str):
+    output = subprocess.run(f"edmCopyPickMerge inputFiles_load=listOfInputFiles.txt outputFile={output_file}",
+                            shell=True,
+                            capture_output=True,
+                            cwd=run_directory,
+                            text=True).stdout
+
 if __name__ == "__main__":
 
     template_files = {"data/templates/config_cfg_template.py" : "./config.py",
