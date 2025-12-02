@@ -51,3 +51,6 @@ This is where tests can be implemented to ensure that the code works as intended
 pytest 
 '''
 in the project root directory. 
+# Tips & Tricks
+## Differing Task Name from Crab Directory Name
+Sometimes, it may be beneficial to submit a recovery task instead of resubmitting. This requires that you create a unique task name. This causes issues when attempting to auto-populate the google sheet since the code looks for a match between the google sheet and the crab task name. Luckily, the directories within the crab directory can be renamed without issue. Internally, the crab program makes use of cached files inside of this crab directory to correlate the directory to the task on the grid. On the other hand, crab_submission_helper always makes use of the name of the directory for it's parsing needs. Therefore, you are free to rename a crab directory as you wish. If the naming scheme follows the same pattern as usual `(ie. crab_<Selection>_<Era>_<version>_<Dataset><Dataset Number>)` the other crab_submission_helper functionality should work fine. 
