@@ -16,7 +16,7 @@ from .lib import crab_helper as ch
 from .lib import google_sheet_helper as gsh
 from .lib.parse_helper import replace_template_values, parse_task_name
 from .lib.notifications import send_ntfy_notification, send_email
-from .lib.config import JobStatus
+from .lib.config import JobStatus, PROJECT_ROOT
 
 load_dotenv()
 
@@ -61,7 +61,7 @@ def add_submit_subparser(subparsers, parent):
                         default=Path(__file__).parent / "data" / "templates",
                         help="Path to template directory")
     parser.add_argument("--template_config_file", type=Path,
-                         default= conf.PROJECT_ROOT / "configs" / "templates.yml")
+                         default= PROJECT_ROOT / "configs" / "templates.yml")
     parser.add_argument("--batch_file", type=str, help="Path to batch submission yaml file")
     parser.add_argument("--test", action="store_true", help="Generate submission files but do not submit them")
     return parser
@@ -188,7 +188,7 @@ def main():
             logger.debug("Looping over directories")
             statuses:pd.DataFrame = ch.get_crab_status(directory, run_directory=args.run_dir)
 
-            output_directory:str = ch.get_grab_output_directory(directory, run_directory=args.run_dir)
+            output_directory:str = ch.get_crab_output_directory(directory, run_directory=args.run_dir)
 
             if (statuses["State"] == "finished").all():
                 logger.info("Task %s finished", str(directory).split('/')[-1])

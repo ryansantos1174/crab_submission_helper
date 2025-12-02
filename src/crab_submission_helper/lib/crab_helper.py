@@ -5,6 +5,8 @@ import datetime
 import logging
 from typing import Optional, Union, Callable, Any, Dict
 from pathlib import Path
+import re
+import sys
 
 from . import parse_helper as parser
 from . import generators as gen
@@ -105,13 +107,24 @@ def get_crab_status(crab_directory:str, run_directory:Optional[str]=None)->dict:
     return task_status_dict
 
 def get_crab_output_directory(crab_directory:str, run_directory:Optional[str]=None)->str:
-    output = subprocess.run(f"crab getoutput --quantity=1 -d {crab_directory} --dump",
+    output = subprocess.run(f"crab getoutput --quantity=1 -d {crab_directory} --dump --jobids=1",
                             shell=True,
                             capture_output=True,
                             cwd=run_directory,
                             text=True).stdout
+
+    # NOTE: Since we this regex looks for /store/group/lpclonglived/DisappTrks if we
+    # eventually change storage locations, this will break.
+    pattern = re.compile(r"/store/group/lpclonglived/DisappTrks/[^/]+/[^/]+/")
+    match = pattern.search(output)
+
+    if match:
+        logger.debug("Output Directory: %s", match.group(0))
+    else:
+        logger.debug("No match found. Command output: %s", output)
+
     # Parse output for LFN
-    return path
+    return match.group(0)
 
 def crab_resubmit(crab_directory:str, resubmit_options:Optional[dict]=None, run_directory:Optional[str]=None)->bool:
     # Start building the command
