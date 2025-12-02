@@ -156,11 +156,20 @@ def grab_crab_directories(glob_pattern:str = "*", crab_directory:str="crab/")->l
     BASE_DIR = Path(crab_directory)
     return list(BASE_DIR.glob(glob_pattern))
 
-def find_files(regex:str, directoyr:str):
+def find_files(hist_or_skim:str, directory:str):
+    hist_pattern = 'hist.*.root'
+    skim_pattern = 'skim.*.root'
+    if hist_or_skim == 'hist':
+        regex = hist_pattern
+    elif hist_or_skim == 'skim':
+        regex = skim_pattern
+    else:
+        logger.error("Generalized regex is not available yet. You must pass 'hist' or 'skim'.")
+        return
+
     output = subprocess.run(f"eos root://cmseos.fnal.gov find --xurl --name \"{regex}\" \"{directory}\"",
                             shell=True,
                             capture_output=True,
-                            cwd=run_directory,
                             text=True).stdout
     with open("listOfInputFiles.txt", "w") as file:
         file.write("\n".join(output.splitlines()))  # Write each entry on a new line
@@ -169,7 +178,6 @@ def merge_files(output_file: str):
     output = subprocess.run(f"edmCopyPickMerge inputFiles_load=listOfInputFiles.txt outputFile={output_file}",
                             shell=True,
                             capture_output=True,
-                            cwd=run_directory,
                             text=True).stdout
 
 if __name__ == "__main__":
