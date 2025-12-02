@@ -212,13 +212,12 @@ def main():
 
             else:
                 logger.info("Task is still running: %s", str(directory).split('/')[-1])
-                status = "Processing"
-
+                status = JobStatus.Processing
             # When we reach the Google API limit error 429 will be raised
             try:
                 gsh.update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
-                                    str(directory), output_directory, force=True)
-                gsh.format
+                                       str(directory), status, output_directory, force=True)
+
             except APIError as e:
                 # Wait a minute for the API request limit to reset
                 logger.debug("Google sheet API rate limit reached waiting 1 minute to proceed")
