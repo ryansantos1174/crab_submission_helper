@@ -122,7 +122,6 @@ def get_crab_output_directory(crab_directory:str, run_directory:Optional[str]=No
         logger.debug("Output Directory: %s", match.group(0))
     else:
         logger.debug("No match found. Command output: %s", output)
-
     # Parse output for LFN
     return match.group(0)
 
@@ -133,7 +132,7 @@ def crab_resubmit(crab_directory:str, resubmit_options:Optional[dict]=None, run_
     # Add optional flags
     if resubmit_options:
         if "maxmemory" in resubmit_options:
-            crab_command += ["--maxmemory=", str(resubmit_options["maxmemory"])]
+            crab_command += [f"--maxmemory={resubmit_options['maxmemory']}"]
         if "siteblacklist" in resubmit_options:
             crab_command += ["--siteblacklist=", ",".join(resubmit_options["siteblacklist"])
                              if isinstance(resubmit_options["siteblacklist"], list)
@@ -146,6 +145,7 @@ def crab_resubmit(crab_directory:str, resubmit_options:Optional[dict]=None, run_
     # Run the command
     result = subprocess.run(crab_command, capture_output=True, text=True, cwd=run_directory)
 
+    print(result.stderr)
 
     return result.returncode, crab_command
 
@@ -171,14 +171,31 @@ def find_files(hist_or_skim:str, directory:str):
                             shell=True,
                             capture_output=True,
                             text=True).stdout
+
+
     with open("listOfInputFiles.txt", "w") as file:
         file.write("\n".join(output.splitlines()))  # Write each entry on a new line
 
 def merge_files(output_file: str):
-    output = subprocess.run(f"edmCopyPickMerge inputFiles_load=listOfInputFiles.txt outputFile={output_file}",
+    input_files = Path("listOfInputFiles.txt").resolve()
+    print(input_files)
+    if not input_files.exists():
+        logger.error("Input file doesn't exist!")
+        return
+    output = subprocess.run(f"hadd -O -j 8 {output_file} @{input_files}",
                             shell=True,
                             capture_output=True,
-                            text=True).stdout
+                            text=True)
+
+    logger.debug(output.args)
+    logger.debug(output)
+    # Remove file after merging to avoid accidental duplication
+    # if input_files.exists():
+    #     input_files.unlink()
+
+    print("stdout: ", output.stdout)
+    print("stderr: ", output.stderr)
+    return output.stdout, output.stderr, output.returncode
 
 if __name__ == "__main__":
 

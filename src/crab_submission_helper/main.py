@@ -93,6 +93,16 @@ def add_recovery_subparser(subparsers, parent):
     )
     parser.add_argument("--crab_task", type=str, help="Crab task to generate recovery task for", required=True)
 
+def add_merge_subparser(subparsers, parent):
+    parser = subparsers.add_parser(
+        "merge",
+        parents=[parent],
+        help="Merge hist or skim files for a crab task"
+    )
+    parser.add_argument("--task", required=True, help="Crab task directory relative to the crab directory")
+    parser.add_argument("--hist", action="store_true", help="Flag to state you want hist files")
+    parser.add_argument("--skim", action="store_true", help="Flag to state you want skim files")
+
 def build_parser():
     """Construct the top-level parser."""
     # shared base
@@ -107,6 +117,7 @@ def build_parser():
     add_resubmit_subparser(subparsers, parent_parser)
     add_status_subparser(subparsers, parent_parser)
     add_recovery_subparser(subparsers, parent_parser)
+    add_merge_subparser(subparsers, parent_parser)
 
     return parser
 
@@ -298,3 +309,40 @@ def main():
             body = ("Your crab jobs have been resubmitted")
             send_ntfy_notification(body)
         logger.info("Resubmit command finished")
+
+    if args.command == 'merge':
+        if args.hist and args.skim:
+            logger.error("You must only use --hist or --skim you cannot use both!")
+            return
+
+        crab_directory_path = Path(args.directory) / Path(args.task)
+        output_directory = ch.get_crab_output_directory(str(crab_directory_path), run_directory=args.run_dir)
+
+        logger.debug("Output directory of task: %s", output_directory)
+
+        print("Output directory: ", output_directory)
+        # TODO Move check up before other crab commands
+        if args.hist:
+            hist_or_skim = "hist"
+        elif args.skim:
+            hist_or_skim = "skim"
+        else:
+            logger.error("You must use --skim or --hist flag")
+            return
+
+        logger.debug("Finding files")
+        ch.find_files(hist_or_skim, output_directory)
+
+        output_file_name = output_directory.split("/")[-2] + ".root"
+        logger.debug("Output file name: %s", output_file_name)
+        logger.debug("Merging files")
+        ch.merge_files(output_file_name)
+
+        if args.email:
+            subject = "Crab Merge"
+            body = (f"The files for task {args.task} have been merged. The merged file can be found at {output_file_name}")
+            send_email(subject, body, os.environ["EMAIL"])
+        if args.ntfy:
+            body = (f"The files for task {args.task} have been merged. The merged file can be found at {output_file_name}")
+            send_ntfy_notification(body)
+        logger.info("Merge command finished")
