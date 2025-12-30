@@ -98,14 +98,27 @@ def batch_submit_jobs(
 
 
 def submit_crab_job(config_file_path: str, run_directory: Optional[str] = None) -> str:
-    output = subprocess.run(
-        f"crab submit {config_file_path}",
-        shell=True,
-        capture_output=True,
-        cwd=run_directory,
-        text=True,
-        check=True
-    )
+    try:
+        output = subprocess.run(
+            f"crab submit {config_file_path}",
+            shell=True,
+            capture_output=True,
+            cwd=run_directory,
+            text=True,
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "CRAB submission failed\n"
+            "Command: %s\n"
+            "Return code: %s\n"
+            "----- stdout -----\n%s\n"
+            "----- stderr -----\n%s",
+            e.cmd,
+            e.returncode,
+            (e.stdout or "").strip(),
+            (e.stderr or "").strip(),
+        )
 
     # Verify proper submission of task
     # Check for errors in execution
@@ -130,14 +143,28 @@ def submit_crab_job(config_file_path: str, run_directory: Optional[str] = None) 
 
 
 def get_crab_status(crab_directory: str, run_directory: Optional[str] = None) -> dict:
-    output = subprocess.run(
-        f"crab status --json {crab_directory}",
-        shell=True,
-        capture_output=True,
-        cwd=run_directory,
-        text=True,
-        check=True
-    ).stdout
+    try:
+        output = subprocess.run(
+            f"crab status --json {crab_directory}",
+            shell=True,
+            capture_output=True,
+            cwd=run_directory,
+            text=True,
+            check=True
+        ).stdout
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Grabbing task status failed\n"
+            "Command: %s\n"
+            "Return code: %s\n"
+            "----- stdout -----\n%s\n"
+            "----- stderr -----\n%s",
+            e.cmd,
+            e.returncode,
+            (e.stdout or "").strip(),
+            (e.stderr or "").strip(),
+        )
+
     task_status_dict = parser.status_parser(output)
     return task_status_dict
 
@@ -199,11 +226,23 @@ def crab_resubmit(
             ]
 
     # Run the command
-    result = subprocess.run(
-        crab_command, capture_output=True, text=True, cwd=run_directory, check=True
-    )
+    try:
+        result = subprocess.run(
+            crab_command, capture_output=True, text=True, cwd=run_directory, check=True
+        )
 
-    print(result.stderr)
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Task Resubmission failed\n"
+            "Command: %s\n"
+            "Return code: %s\n"
+            "----- stdout -----\n%s\n"
+            "----- stderr -----\n%s",
+            e.cmd,
+            e.returncode,
+            (e.stdout or "").strip(),
+            (e.stderr or "").strip(),
+        )
 
     return result.returncode, crab_command
 
@@ -231,13 +270,26 @@ def find_files(hist_or_skim: str, directory: str):
         )
         return
 
-    output = subprocess.run(
-        f'eos root://cmseos.fnal.gov find --xurl --name "{regex}" "{directory}"',
-        shell=True,
-        capture_output=True,
-        text=True,
-        check=True
-    ).stdout
+    try:
+        output = subprocess.run(
+            f'eos root://cmseos.fnal.gov find --xurl --name "{regex}" "{directory}"',
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=True
+        ).stdout
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Failed to find file crab task output files!"
+            "Command: %s\n"
+            "Return code: %s\n"
+            "----- stdout -----\n%s\n"
+            "----- stderr -----\n%s",
+            e.cmd,
+            e.returncode,
+            (e.stdout or "").strip(),
+            (e.stderr or "").strip(),
+        )
 
     with open("listOfInputFiles.txt", "w", encoding="utf-8") as file:
         file.write("\n".join(output.splitlines()))  # Write each entry on a new line
@@ -251,14 +303,27 @@ def merge_files(output_file: str):
         logger.error("Input file doesn't exist!")
         return None, None, None
 
-    output = subprocess.run(
-        f"hadd -O -j 8 {output_file} @{input_files}",
-        shell=True,
-        capture_output=True,
-        text=True,
-        check=True
-    )
+    try:
+        output = subprocess.run(
+            f"hadd -O -j 8 {output_file} @{input_files}",
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=True
+        )
 
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Failed to hadd output files together!"
+            "Command: %s\n"
+            "Return code: %s\n"
+            "----- stdout -----\n%s\n"
+            "----- stderr -----\n%s",
+            e.cmd,
+            e.returncode,
+            (e.stdout or "").strip(),
+            (e.stderr or "").strip(),
+        )
     logger.debug(output.args)
     logger.debug(output)
     # Remove file after merging to avoid accidental duplication
