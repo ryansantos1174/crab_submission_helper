@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
-import subprocess
 from pathlib import Path
-import re
+from typing import Optional
+import logging
+
 import gspread
 from google.oauth2.service_account import Credentials
 
-from .parse_helper import status_parser, parse_crab_task
+from .parse_helper import parse_crab_task
 from .config import JobStatus
 
-import sys
-from typing import Optional
-from enum import Enum
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -68,11 +65,11 @@ def find_cell(worksheet, task_name:str)->Optional[tuple[int, ...]]:
     """
 
     cell = worksheet.find(task_name)
+
     if cell:
         return cell.row, cell.col
-    else:
-        return None, None
 
+    return None, None
 
 def update_task_status(worksheet_ID, credentials_file, task_name, status, entry, force=False)->None:
     """
@@ -112,6 +109,7 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status, entry,
         col_offset = 3
     else:
         logger.error("Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): %s", task_name)
+        return
 
     edit_cell(worksheet, row, column+col_offset, entry, force=force)
 
@@ -139,4 +137,8 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status, entry,
                 "blue": 0.0
             }
         }
+    else:
+        logger.error("Unable to determine status, not formatting cell.")
+        return
+
     format_cell(worksheet, row, column+col_offset, format_dict)

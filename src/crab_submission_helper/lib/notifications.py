@@ -1,9 +1,9 @@
 import os
 import logging
-
-import dotenv
 import smtplib
 from email.mime.text import MIMEText
+
+import dotenv
 
 logger = logging.getLogger(__name__)
 

@@ -2,12 +2,13 @@
 from datetime import datetime
 import re
 from typing import Optional
-import yaml
-import pandas as pd
+
 import json
 import logging
 from pathlib import Path
-from . import config as conf
+
+import yaml
+import pandas as pd
 
 
 logger = logging.getLogger(__name__)
@@ -26,8 +27,7 @@ def status_parser(crab_status_output: str) -> pd.DataFrame:
     if start == -1 or end == -1 or end <= start:
         if "Files are purged" in output:
             return pd.DataFrame([{"State": "purged", "message": "Files purged from Grid scheduler"}])
-        else:
-            return pd.DataFrame([{"State": "unknown", "message": "No JSON found"}])
+        return pd.DataFrame([{"State": "unknown", "message": "No JSON found"}])
 
     json_str = output[start:end + 1]
 
@@ -57,7 +57,7 @@ def parse_task_name(task_name:str)-> tuple:
     Especially important for recovery tasks where you may want to submit a task
     but don't want to have to recreate an entry by hand in the yaml file
     """
-    pattern ="crab_(?P<selection>.*)_(?P<year>\d{4})(?P<era>[A-Z])_?(?P<version>v\d)?_(?P<dataset>NLayers|EGamma\d|Muon\d)"
+    pattern =r"crab_(?P<selection>.*)_(?P<year>\d{4})(?P<era>[A-Z])_?(?P<version>v\d)?_(?P<dataset>NLayers|EGamma\d|Muon\d)"
     match = re.match(pattern, task_name)
     if match:
         return (match.group("selection"),
@@ -65,8 +65,7 @@ def parse_task_name(task_name:str)-> tuple:
                 match.group("era"),
                 match.group("version"),
                 match.group("dataset"))
-    else:
-        raise ValueError("Unable to parse data from task name")
+    raise ValueError("Unable to parse data from task name")
 
 
 def parse_template_files(template_directory:Path, run_directory:Path,
@@ -116,7 +115,7 @@ def replace_template_values(template_file_path:str, replacement:dict,
 
     template_pattern = r"__([A-Z0-9_]+)__"
 
-    with open(template_file_path, "r") as f:
+    with open(template_file_path, "r", encoding='utf-8') as f:
         text = f.read()
 
 
@@ -129,7 +128,7 @@ def replace_template_values(template_file_path:str, replacement:dict,
     subbed_text = re.sub(template_pattern, replace_var, text)
 
     if save and output_file:
-        with open(output_file, "w") as outfile:
+        with open(output_file, "w", encoding='utf-8') as outfile:
             outfile.write(subbed_text)
 
     elif save and not output_file:
@@ -150,20 +149,10 @@ def parse_crab_task(task_name:str)->Optional[tuple[str,...]]:
         version = match.group(3)  # 'v1'
         dataset_version = match.group(4)
         return selection, era, version, dataset_version
-    else:
-        return None, None, None, None
+
+    return None, None, None, None
 
 def parse_yaml(yaml_file_path:str) -> dict['str', ...]:
-    with open(yaml_file_path, "r") as f:
+    with open(yaml_file_path, "r", encoding='utf-8') as f:
         data = yaml.safe_load(f)
     return data
-
-
-
-
-if __name__ == "__main__":
-    replacement = {"SKIM_FILE": "test.py",
-                   "DATASET" : "ahhhh",
-                   "REQUESTNAME" : "sldkjfa"}
-
-    replace_template_values("crab_2022_Tau_template.py", replacement)

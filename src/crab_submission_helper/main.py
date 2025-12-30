@@ -3,9 +3,7 @@ import argparse
 import logging
 import os
 import sys
-import json
 import time
-from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -14,11 +12,12 @@ import pandas as pd
 
 from .lib import crab_helper as ch
 from .lib import google_sheet_helper as gsh
-from .lib.parse_helper import replace_template_values, parse_task_name
+from .lib.parse_helper import parse_template_files
 from .lib.notifications import send_ntfy_notification, send_email
 from .lib.config import JobStatus, PROJECT_ROOT
 
 load_dotenv()
+
 
 ##################################
 #  Setup command line interface  #
@@ -26,82 +25,103 @@ load_dotenv()
 def add_common_arguments(parser):
     """Add arguments shared by all subcommands."""
     parser.add_argument(
-        "-d", "--directory", required=True,
-        help="Path to the CRAB project directory"
+        "-d", "--directory", required=True, help="Path to the CRAB project directory"
     )
     parser.add_argument(
-        "-v", "--verbose", action="store_true",
-        help="Verbose logging messages"
+        "-v", "--verbose", action="store_true", help="Verbose logging messages"
     )
     parser.add_argument(
-        "-l", "--log", default="crab_helper.log",
-        help="Path to log file"
+        "-l", "--log", default="crab_helper.log", help="Path to log file"
     )
     parser.add_argument(
-        "-r", "--rundir", default=None, dest="run_dir",
-        help="Path to directory where commands will be run"
+        "-r",
+        "--rundir",
+        default=None,
+        dest="run_dir",
+        help="Path to directory where commands will be run",
     )
     parser.add_argument(
-        "--email", action="store_true",
-        help="Send a notification to your email"
+        "--email", action="store_true", help="Send a notification to your email"
     )
     parser.add_argument(
-        "--ntfy", action="store_true",
-        help="Send a notification to your ntfy server"
+        "--ntfy", action="store_true", help="Send a notification to your ntfy server"
     )
     return parser
+
 
 def add_submit_subparser(subparsers, parent):
     parser = subparsers.add_parser(
-        "submit",
-        parents=[parent],
-        help="Initial submission of CRAB job"
+        "submit", parents=[parent], help="Initial submission of CRAB job"
     )
-    parser.add_argument("--template", type=str,
-                        default=Path(__file__).parent / "data" / "templates",
-                        help="Path to template directory")
-    parser.add_argument("--template_config_file", type=Path,
-                         default= PROJECT_ROOT / "configs" / "templates.yml")
-    parser.add_argument("--batch_file", type=str, help="Path to batch submission yaml file")
-    parser.add_argument("--test", action="store_true", help="Generate submission files but do not submit them")
+    parser.add_argument(
+        "--template",
+        type=str,
+        default=Path(__file__).parent / "data" / "templates",
+        help="Path to template directory",
+    )
+    parser.add_argument(
+        "--template_config_file",
+        type=Path,
+        default=PROJECT_ROOT / "configs" / "templates.yml",
+    )
+    parser.add_argument(
+        "--batch_file", type=str, help="Path to batch submission yaml file"
+    )
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Generate submission files but do not submit them",
+    )
     return parser
+
 
 def add_resubmit_subparser(subparsers, parent):
     parser = subparsers.add_parser(
-        "resubmit",
-        parents=[parent],
-        help="Resubmit CRAB jobs"
+        "resubmit", parents=[parent], help="Resubmit CRAB jobs"
     )
     parser.add_argument("--maxmemory", type=int, help="Override max memory for jobs")
     parser.add_argument("--siteblacklist", nargs="+", help="Sites to exclude")
     parser.add_argument("--sitewhitelist", nargs="+", help="Sites to prefer")
     return parser
 
+
 def add_status_subparser(subparsers, parent):
     parser = subparsers.add_parser(
-        "status",
-        parents=[parent],
-        help="Check status of CRAB jobs"
+        "status", parents=[parent], help="Check status of CRAB jobs"
     )
     return parser
+
 
 def add_recovery_subparser(subparsers, parent):
     parser = subparsers.add_parser(
         "recover",
         parents=[parent],
-        help="Create a recovery task for for the given crab task"
+        help="Create a recovery task for for the given crab task",
     )
-    parser.add_argument("--crab_task", type=str, help="Crab task to generate recovery task for", required=True)
+    parser.add_argument(
+        "--crab_task",
+        type=str,
+        help="Crab task to generate recovery task for",
+        required=True,
+    )
+
 
 def add_merge_subparser(subparsers, parent):
     parser = subparsers.add_parser(
-        "merge",
-        parents=[parent],
-        help="Merge hist or skim files for a crab task"
+        "merge", parents=[parent], help="Merge hist or skim files for a crab task"
     )
-    parser.add_argument("--task", required=True, help="Crab task directory relative to the crab directory")
-    parser.add_argument("--hist", action="store_true", help="Flag to state you want hist files")
-    parser.add_argument("--skim", action="store_true", help="Flag to state you want skim files")
+    parser.add_argument(
+        "--task",
+        required=True,
+        help="Crab task directory relative to the crab directory",
+    )
+    parser.add_argument(
+        "--hist", action="store_true", help="Flag to state you want hist files"
+    )
+    parser.add_argument(
+        "--skim", action="store_true", help="Flag to state you want skim files"
+    )
+
 
 def build_parser():
     """Construct the top-level parser."""
@@ -121,8 +141,9 @@ def build_parser():
 
     return parser
 
+
 def main():
-    parser=build_parser()
+    parser = build_parser()
     args = parser.parse_args()
 
     ###############
@@ -140,11 +161,11 @@ def main():
         level=log_level,
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        handlers=[file_handler, console_handler]
+        handlers=[file_handler, console_handler],
     )
     logger = logging.getLogger(__name__)
 
-    if args.command == 'submit':
+    if args.command == "submit":
         # TODO: Add in check to see if job has already been submitted which would cause crab to not submit job
 
         # Generate template_files dict needed for batch_submit_jobs
@@ -152,31 +173,37 @@ def main():
         # and crab_template_nlayers.py will overwrite each other but the logic to avoid this
         # is inside batch_submit_jobs()
 
-        template_files = parse_template_files(args.template, args.run_dir, args.template_config_file)
+        template_files = parse_template_files(
+            args.template, args.run_dir, args.template_config_file
+        )
 
-        ch.batch_submit_jobs(args.batch_file, template_files, test=args.test, run_directory=args.run_dir)
+        ch.batch_submit_jobs(
+            args.batch_file, template_files, test=args.test, run_directory=args.run_dir
+        )
 
         if args.email and not args.test:
             subject = "Crab submission finished"
-            body = ("Your crab submission has finished submitting!\n"
-                    "You can keep track of the jobs using the status command and you can resubmit"
-                    "any potentially failed jobs with resubmit")
+            body = (
+                "Your crab submission has finished submitting!\n"
+                "You can keep track of the jobs using the status command and you can resubmit"
+                "any potentially failed jobs with resubmit"
+            )
             send_email(subject, body, os.environ["EMAIL"])
         if args.ntfy and not args.test:
-            send_ntfy_notification("Your crab submission has finished submitting!\n"
-                    "You can keep track of the jobs using the status command and you can resubmit"
-                    "any potentially failed jobs with resubmit")
+            send_ntfy_notification(
+                "Your crab submission has finished submitting!\n"
+                "You can keep track of the jobs using the status command and you can resubmit"
+                "any potentially failed jobs with resubmit"
+            )
         logger.info("Submission finished")
 
-    if args.command == 'status':
+    if args.command == "status":
         logger.info("Running crab status")
         crab_directories = ch.grab_crab_directories(crab_directory=args.directory)
 
-        finished_status: int = 0
         failed_jobs_status: int = 0
         processing_jobs_status: int = 0
         unknown_status: int = 0
-        index = 0
 
         # Setup cache to keep status of jobs
         project_root = Path(__file__).parent.parent
@@ -186,93 +213,128 @@ def main():
             logger.info("Cache directory exists. Using preexisting directory")
         else:
             cache_dir.mkdir()
-            logger.info("Cache directory didn't exist. Created directory at %s", cache_dir.resolve())
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%s")
-        summary_file = cache_dir / f"crab_summary_{timestamp}.json"
+            logger.info(
+                "Cache directory didn't exist. Created directory at %s",
+                cache_dir.resolve(),
+            )
 
         finished_job = 0
-        processing_job = 0
         failed_job = 0
         unknown_job = 0
         for directory in crab_directories:
             logger.debug("Looping over directories")
-            statuses:pd.DataFrame = ch.get_crab_status(directory, run_directory=args.run_dir)
+            statuses: pd.DataFrame = ch.get_crab_status(
+                directory, run_directory=args.run_dir
+            )
 
-            output_directory:str = ch.get_crab_output_directory(directory, run_directory=args.run_dir)
+            output_directory: str = ch.get_crab_output_directory(
+                directory, run_directory=args.run_dir
+            )
 
             if (statuses["State"] == "finished").all():
-                logger.info("Task %s finished", str(directory).split('/')[-1])
+                logger.info(
+                    "Task %s finished", str(directory).rsplit("/", maxsplit=1)[-1]
+                )
                 status = JobStatus.Finished
                 finished_job += 1
 
-            elif (statuses['State'] == 'failed').any() and ((statuses['HasUnrecoverableError']).any() or (statuses["TooManyRetries"]).any()):
-                logger.info("Task has unrecoverable failed jobs: %s", str(directory).split('/')[-1])
+            elif (statuses["State"] == "failed").any() and (
+                (statuses["HasUnrecoverableError"]).any()
+                or (statuses["TooManyRetries"]).any()
+            ):
+                logger.info(
+                    "Task has unrecoverable failed jobs: %s",
+                    str(directory).rsplit("/", maxsplit=1)[-1],
+                )
                 status = JobStatus.Failed
                 failed_job += 1
 
-            elif (statuses['State'] == 'failed').any():
-                logger.info("Task has failed jobs: %s", str(directory).split('/')[-1])
+            elif (statuses["State"] == "failed").any():
+                logger.info(
+                    "Task has failed jobs: %s",
+                    str(directory).rsplit("/", maxsplit=1)[-1],
+                )
                 status = JobStatus.Failed
                 failed_job += 1
 
-            elif statuses['State'].isin(["purged", "unknown", "invalid"]).any():
-                logger.info("Unknown issue with job %s", str(directory).split('/')[-1])
+            elif statuses["State"].isin(["purged", "unknown", "invalid"]).any():
+                logger.info(
+                    "Unknown issue with job %s",
+                    str(directory).rsplit("/", maxsplit=1)[-1],
+                )
                 status = JobStatus.Unknown
                 unknown_job += 1
 
             else:
-                logger.info("Task is still running: %s", str(directory).split('/')[-1])
+                logger.info(
+                    "Task is still running: %s",
+                    str(directory).rsplit("/", maxsplit=1)[-1],
+                )
                 status = JobStatus.Processing
             # When we reach the Google API limit error 429 will be raised
             try:
-                gsh.update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
-                                       str(directory), status, output_directory, force=True)
+                gsh.update_task_status(
+                    os.environ["GOOGLE_SHEET_ID"],
+                    os.environ["CREDENTIALS"],
+                    str(directory),
+                    status,
+                    output_directory,
+                    force=True,
+                )
 
-            except APIError as e:
+            except APIError:
                 # Wait a minute for the API request limit to reset
-                logger.debug("Google sheet API rate limit reached waiting 1 minute to proceed")
+                logger.debug(
+                    "Google sheet API rate limit reached waiting 1 minute to proceed"
+                )
                 time.sleep(60)
-                gsh.update_task_status(os.environ["GOOGLE_SHEET_ID"], os.environ["CREDENTIALS"],
-                                       str(directory), status, output_directory, force=True)
-
-            try:
-                unrecoverable_job_ids = statuses.loc[statuses["HasUnrecoverableError"], "job_id"].tolist()
-            except KeyError:
-                unrecoverable_job_ids = []
+                gsh.update_task_status(
+                    os.environ["GOOGLE_SHEET_ID"],
+                    os.environ["CREDENTIALS"],
+                    str(directory),
+                    status,
+                    output_directory,
+                    force=True,
+                )
 
         if args.email:
             subject = "Crab status"
-            body = ("The status of your crab jobs has been recieved."
-                    f"There are {finished_job} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
-                    "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
-                    "For the jobs with an unknown status, you will probably need to check these jobs manually.")
+            body = (
+                "The status of your crab jobs has been recieved."
+                f"There are {finished_job} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
+                "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
+                "For the jobs with an unknown status, you will probably need to check these jobs manually."
+            )
             send_email(subject, body, os.environ["EMAIL"])
         if args.ntfy:
-            body = ("The status of your crab jobs has been recieved."
-                    f"There are {finished_job} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
-                    "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
-                    "For the jobs with an unknown status, you will probably need to check these jobs manually.")
+            body = (
+                "The status of your crab jobs has been recieved."
+                f"There are {finished_job} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
+                "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
+                "For the jobs with an unknown status, you will probably need to check these jobs manually."
+            )
             send_ntfy_notification(body)
         logger.info("Status command finished")
 
-    if args.command == 'recover':
+    if args.command == "recover":
         # Should only pass a single crab directory don't need to recover every job in crab directory
         # Parse task name to determine selection, year, era, and NLayers
-        selection, year, era, version, dataset  = parse_task_name(args.crab_task)
+        print("Recovery has yet to be implemented! Sorry :'( ")
+        sys.exit(1)
 
-        template_files = {
-            "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
-            "crab_template.py" : Path(args.run_dir) / "crab_cfg.py",
-            "config_selections_template.py": Path(args.run_dir) / "../python/config.py"
-        }
+        # selection, year, era, version, dataset  = parse_task_name(args.crab_task)
 
-        replace_template_values(template_files, replacement)
-        ch.submit_crab_job()
-        args.crab_task
+        # template_files = {
+        #     "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
+        #     "crab_template.py" : Path(args.run_dir) / "crab_cfg.py",
+        #     "config_selections_template.py": Path(args.run_dir) / "../python/config.py"
+        # }
+
+        # replace_template_values(template_files, replacement)
+        # ch.submit_crab_job()
+        # args.crab_task
 
         # Run crab recovery command to generate necessary json files
-
 
         # Check whether it is an NLayers or not which will tell you whether you need to check the files
         # or the lumisection to process
@@ -281,42 +343,55 @@ def main():
         # placed in the same output directory but there needs to be a new
         # requestName so as to not collide with previous task.
 
-
-    if args.command == 'resubmit':
+    if args.command == "resubmit":
         logger.info("Running crab resbumit")
         crab_directories = ch.grab_crab_directories(crab_directory=args.directory)
-        logger.debug(f"Running over following crab directories {crab_directories}")
+        logger.debug(
+            "Running over following crab directories %s",
+            crab_directories,
+        )
 
         for directory in crab_directories:
             # TODO: Implement way to apply resubmission criteria like maxmemory or siteblacklist
             # without affecting all submissions
-            return_code, command = ch.crab_resubmit(str(directory), resubmit_options={"maxmemory": 4000}, run_directory=args.run_dir)
+            return_code, command = ch.crab_resubmit(
+                str(directory),
+                resubmit_options={"maxmemory": 4000},
+                run_directory=args.run_dir,
+            )
 
-            logger.debug(f"Ran crab command: {command}")
-            logger.debug(f"Crab command returned status: {return_code}")
+            logger.debug("Ran crab command: %s", command)
+            logger.debug("Crab command returned status: %s", return_code)
 
             if return_code == 192:
-                logger.warning(f"No jobs to resubmit for task {str(directory).split('/')[-1]}")
+                logger.warning(
+                    "No jobs to resubmit for task %s",
+                    str(directory).rsplit("/", maxsplit=1)[-1],
+                )
             elif return_code != 0:
-                logger.error(f"Crab submit command did not execute correctly: {command}")
-                logger.error(f"Crab error code: {return_code}")
+                logger.error(
+                    "Crab submit command did not execute correctly: %s", command
+                )
+                logger.error("Crab error code: %s", return_code)
 
         if args.email:
             subject = "Crab status"
-            body = ("Your crab jobs have been resubmitted")
+            body = "Your crab jobs have been resubmitted"
             send_email(subject, body, os.environ["EMAIL"])
         if args.ntfy:
-            body = ("Your crab jobs have been resubmitted")
+            body = "Your crab jobs have been resubmitted"
             send_ntfy_notification(body)
         logger.info("Resubmit command finished")
 
-    if args.command == 'merge':
+    if args.command == "merge":
         if args.hist and args.skim:
             logger.error("You must only use --hist or --skim you cannot use both!")
             return
 
         crab_directory_path = Path(args.directory) / Path(args.task)
-        output_directory = ch.get_crab_output_directory(str(crab_directory_path), run_directory=args.run_dir)
+        output_directory = ch.get_crab_output_directory(
+            str(crab_directory_path), run_directory=args.run_dir
+        )
 
         logger.debug("Output directory of task: %s", output_directory)
 
@@ -340,9 +415,9 @@ def main():
 
         if args.email:
             subject = "Crab Merge"
-            body = (f"The files for task {args.task} have been merged. The merged file can be found at {output_file_name}")
+            body = f"The files for task {args.task} have been merged. The merged file can be found at {output_file_name}"
             send_email(subject, body, os.environ["EMAIL"])
         if args.ntfy:
-            body = (f"The files for task {args.task} have been merged. The merged file can be found at {output_file_name}")
+            body = f"The files for task {args.task} have been merged. The merged file can be found at {output_file_name}"
             send_ntfy_notification(body)
         logger.info("Merge command finished")

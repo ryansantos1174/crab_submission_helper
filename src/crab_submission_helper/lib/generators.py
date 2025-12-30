@@ -1,7 +1,14 @@
+"""
+Functions to generate values that are needed for the replacement
+of templated values in the template files.
+
+ie. Functions to generate the request name or functions
+to gather the correct lumimask
+"""
 from typing import Any, Callable
-from pathlib import Path
-import tomli
 import logging
+
+import tomli
 
 from . import config as conf
 
@@ -11,14 +18,14 @@ def check_keys(dictionary:dict, key_values:list[str])->bool:
     # List returns True if non-empty
     return not bool([k for k in dictionary if k not in key_values])
 
-def add_skim_files(values:str, skim_path:str):
+def add_skim_files(values:str):
     """
     Add path to txt file containing skim files to dictionary
     """
     required_keys = ["REQUEST_NAME"]
     if not check_keys(values, required_keys):
         logging.error("Missing REQUEST_NAME key. Make sure you run this generator after add_request_name().")
-        raise KeyError(f"Missing required keys in values: REQUEST_NAME")
+        raise KeyError("Missing required keys in values: REQUEST_NAME")
 
     #skim_file_path
     #return {"SKIM_FILE": skim_file_path}
@@ -42,6 +49,11 @@ def generate_template_values(
 
 def add_lumi_mask(values: dict[str, Any]) -> dict[str, Any]:
     required_keys = ["YEAR"]
+
+    # --- Validate required keys ---
+    if not check_keys(values,required_keys):
+        raise KeyError("Missing required keys in values")
+
     dataset_file = conf.PROJECT_ROOT / "configs" / "datasets.toml"
 
     with dataset_file.open("rb") as f:
@@ -68,14 +80,12 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
 
     print(f"{values=}")
     # --- Validate required keys ---
-    missing = [k for k in required_keys if k not in values]
-    if missing:
-        if "DATASET" in missing:
-            logging.error(
-                "Your selections are missing DATASET. Make sure that you have ran the add_dataset function "
-                "before calling add_request_name!!!!"
-            )
-        raise KeyError(f"Missing required keys in values: {', '.join(missing)}")
+    if not check_keys(values, required_keys):
+        logging.error(
+            "Your selections are missing DATASET. Make sure that you have ran the add_dataset function "
+            "before calling add_request_name!!!!"
+        )
+        raise KeyError("Missing required keys in values")
 
     # --- Normalize and extract values ---
     selections = values["SELECTION"]
@@ -100,6 +110,11 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
 
 def add_dataset(values: dict[str, Any]) -> dict[str, Any]:
     required_keys = ["SELEeTION", "YEAR", "ERA", "ERA_VERSION", "DATASET_VERSION"]
+
+    if not check_keys(values, required_keys):
+        logging.error("Missing REQUEST_NAME key. Make sure you run this generator after add_request_name().")
+        raise KeyError("Missing required keys in values: REQUEST_NAME")
+
     dataset_file = conf.PROJECT_ROOT / "configs" / "datasets.toml"
     selections_file = conf.PROJECT_ROOT / "configs" / "selections.toml"
 
