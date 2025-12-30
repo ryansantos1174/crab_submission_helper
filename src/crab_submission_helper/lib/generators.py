@@ -14,16 +14,15 @@ from . import config as conf
 
 logger = logging.getLogger(__name__)
 
-def check_keys(dictionary:dict, key_values:list[str])->bool:
-    # List returns True if non-empty
-    return not bool([k for k in dictionary if k not in key_values])
+def missing_required_keys(dictionary: dict, required_keys: list[str]) -> list[str]:
+    return [k for k in required_keys if k not in dictionary]
 
 def add_skim_files(values:str):
     """
     Add path to txt file containing skim files to dictionary
     """
     required_keys = ["REQUEST_NAME"]
-    if not check_keys(values, required_keys):
+    if missing_required_keys(values, required_keys):
         logging.error("Missing REQUEST_NAME key. Make sure you run this generator after add_request_name().")
         raise KeyError("Missing required keys in values: REQUEST_NAME")
 
@@ -51,7 +50,7 @@ def add_lumi_mask(values: dict[str, Any]) -> dict[str, Any]:
     required_keys = ["YEAR"]
 
     # --- Validate required keys ---
-    if not check_keys(values,required_keys):
+    if missing_required_keys(values,required_keys):
         raise KeyError("Missing required keys in values")
 
     dataset_file = conf.PROJECT_ROOT / "configs" / "datasets.toml"
@@ -80,7 +79,7 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
 
     print(f"{values=}")
     # --- Validate required keys ---
-    if not check_keys(values, required_keys):
+    if missing_required_keys(values, required_keys):
         logging.error(
             "Your selections are missing DATASET. Make sure that you have ran the add_dataset function "
             "before calling add_request_name!!!!"
@@ -109,9 +108,11 @@ def add_request_name(values: dict[str, Any]) -> dict[str, Any]:
     return {"REQUEST_NAME": request_name}
 
 def add_dataset(values: dict[str, Any]) -> dict[str, Any]:
-    required_keys = ["SELEeTION", "YEAR", "ERA", "ERA_VERSION", "DATASET_VERSION"]
+    required_keys = ["SELECTION", "YEAR", "ERA", "ERA_VERSION", "DATASET_VERSION"]
 
-    if not check_keys(values, required_keys):
+    print(values)
+    print(required_keys)
+    if missing_required_keys(values, required_keys):
         logging.error("Missing REQUEST_NAME key. Make sure you run this generator after add_request_name().")
         raise KeyError("Missing required keys in values: REQUEST_NAME")
 
