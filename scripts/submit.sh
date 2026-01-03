@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CMSSW_VERSION="CMSSW_13_0_13"
-BATCH_FILE="2023_TauTag_batch_submission.yaml"
-LOG_FILE="TauTag_2023.log"
+CMSSW_VERSION="CMSSW_15_0_10"
+BATCH_FILE="2024_Tau_background.yml"
+LOG_FILE="TauBackground_2024.log"
 
 CMSSW_SRC="/uscms_data/d3/delossan/${CMSSW_VERSION}/src"
 TEST_DIR="${CMSSW_SRC}/DisappTrks/BackgroundEstimation/test"
@@ -21,4 +21,3 @@ crab_helper submit -r "${TEST_DIR}" \
   -l "${LOG_PATH}" \
   -d "${CRAB_DIR}" \
   --batch_file "${BATCH_PATH}" \
-  --test

@@ -122,22 +122,17 @@ def submit_crab_job(config_file_path: str, run_directory: Optional[str] = None) 
 
     # Verify proper submission of task
     # Check for errors in execution
-    if output.returncode != 0:
-        logger.error("❌ CRAB submission failed to execute.")
-        logger.error("stderr: %s", output.stderr)
-        logger.error("stdout: %s", output.stdout)
-    else:
-        output = output.stdout
-        logger.debug(output)
+    output = output.stdout
+    logger.debug(output)
 
-        # Verify successful CRAB task submission
-        if "Success:" in output or "Task submitted successfully" in output:
-            logger.info("✅ CRAB task submitted successfully!")
-        else:
-            logger.error(
-                "⚠️ CRAB submission command ran, but no success message was found."
-            )
-            logger.error("Output was: %s", output)
+    # Verify successful CRAB task submission
+    if "Success:" in output or "Task submitted successfully" in output:
+        logger.info("✅ CRAB task submitted successfully!")
+    else:
+        logger.error(
+            "⚠️ CRAB submission command ran, but no success message was found."
+        )
+        logger.error("Output was: %s", output)
 
     return output
 
