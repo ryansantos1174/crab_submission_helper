@@ -107,6 +107,21 @@ def submit_crab_job(config_file_path: str, run_directory: Optional[str] = None) 
             text=True,
             check=True
         )
+
+        # Verify proper submission of task
+        # Check for errors in execution
+        output = output.stdout
+        logger.debug(output)
+
+        # Verify successful CRAB task submission
+        if "Success:" in output or "Task submitted successfully" in output:
+            logger.info("✅ CRAB task submitted successfully!")
+        else:
+            logger.error(
+                "⚠️ CRAB submission command ran, but no success message was found."
+            )
+            logger.error("Output was: %s", output)
+        return output
     except subprocess.CalledProcessError as e:
         logger.error(
             "CRAB submission failed\n"
@@ -120,21 +135,7 @@ def submit_crab_job(config_file_path: str, run_directory: Optional[str] = None) 
             (e.stderr or "").strip(),
         )
 
-    # Verify proper submission of task
-    # Check for errors in execution
-    output = output.stdout
-    logger.debug(output)
 
-    # Verify successful CRAB task submission
-    if "Success:" in output or "Task submitted successfully" in output:
-        logger.info("✅ CRAB task submitted successfully!")
-    else:
-        logger.error(
-            "⚠️ CRAB submission command ran, but no success message was found."
-        )
-        logger.error("Output was: %s", output)
-
-    return output
 
 
 def get_crab_status(crab_directory: str, run_directory: Optional[str] = None) -> dict:
