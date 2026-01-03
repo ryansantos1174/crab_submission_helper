@@ -16,9 +16,9 @@ if not NLayers:
     if selection == "DisTrkSelection":
         add_channels  (process,  [disTrkSelectionNoD0CutNHits3],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
         add_channels  (process,  [disTrkSelectionSidebandD0CutNHits3],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
-        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits4],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)        ...
-        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits5],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)    if selection == "ZtoMuMu":
-        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits6],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)        add_channels  (process,  [ZtoMuMu],                        histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers)
+        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits4],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
+        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits5],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
+        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits6],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
 
     if selection == "ZtoEE":
         add_channels  (process,  [ZtoEE],                           histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers, ignoreSkimmedCollections = True, forceNonEmptySkim=True)
