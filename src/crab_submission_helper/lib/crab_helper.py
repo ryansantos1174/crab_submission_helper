@@ -222,36 +222,11 @@ def crab_resubmit(
             ]
 
     # Run the command
-    try:
-        result = subprocess.run(
-            crab_command, capture_output=True, text=True, cwd=run_directory, check=True
-        )
-        # Verify proper submission of task
-        # Check for errors in execution
-        output = result.stdout
-        logger.debug(output)
+    result = subprocess.run(
+        crab_command, capture_output=True, text=True, cwd=run_directory, check=False
+    )
 
-        # Verify successful CRAB task submission
-        if "Success:" in output or "Task submitted successfully" in output:
-            logger.info("✅ CRAB task submitted successfully!")
-        else:
-            logger.error(
-                "⚠️ CRAB submission command ran, but no success message was found."
-            )
-            logger.error("Output was: %s", output)
-        return output
-    except subprocess.CalledProcessError as e:
-        logger.error(
-            "Task Resubmission failed\n"
-            "Command: %s\n"
-            "Return code: %s\n"
-            "----- stdout -----\n%s\n"
-            "----- stderr -----\n%s",
-            e.cmd,
-            e.returncode,
-            (e.stdout or "").strip(),
-            (e.stderr or "").strip(),
-        )
+    return result.returncode, result.args
 
 
 def grab_crab_directories(
