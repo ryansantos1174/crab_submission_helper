@@ -2,7 +2,6 @@
 TauTagPt55 = "Muon"
 ZtoTauToMuProbeTrk = "Muon"
 ZtoTauToEleProbeTrk = "EGamma"
-ElectronTagPt55 = "EGamma"
 MuonFiducial = "Muon"
 ElectronFiducial = "EGamma"
 TriggerAnalysis = "Muon"
