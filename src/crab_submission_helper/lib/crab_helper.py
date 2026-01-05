@@ -325,3 +325,24 @@ def merge_files(output_file: str, is_skim_file: bool):
     print("stdout: ", output.stdout)
     print("stderr: ", output.stderr)
     return output.stdout, output.stderr, output.returncode
+
+def write_to_eos(target_path:str, file_to_copy:str):
+    """
+    Function to copy files to EOS space
+
+    target_path: Path on EOS where you would like to write your files
+    file_to_copy: File you would like to copy
+    """
+    ...
+
+def clear_intermediary_eos_files(target_path:str):
+    """
+    Clear up intermediate skim and hist files produced by crab
+
+    Will delete the thousands of skim and hist files created by crab after submitting
+    jobs.
+
+    target_path: Path to directory containing the intermediate files that you would like
+                to remove
+    """
+    ...

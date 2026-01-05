@@ -411,7 +411,13 @@ def main():
         output_file_name = output_directory.split("/")[-2] + ".root"
         logger.debug("Output file name: %s", output_file_name)
         logger.debug("Merging files")
+
+        # Merge files
         ch.merge_files(output_file_name)
+
+        # Copy back to EOS space
+
+        # Remove unmerged files
 
         if args.email:
             subject = "Crab Merge"
