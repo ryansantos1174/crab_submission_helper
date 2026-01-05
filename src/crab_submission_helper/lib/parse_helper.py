@@ -41,12 +41,16 @@ def status_parser(crab_status_output: str) -> pd.DataFrame:
     df = pd.DataFrame.from_dict(data, orient="index").reset_index()
     df.rename(columns={"index": "job_id"}, inplace=True)
 
+    logger.debug("Status dataframe columns: %s", list(df.columns))
+
     df["Retries"] = pd.to_numeric(df["Retries"], errors="coerce").fillna(0)
     # Flag jobs with more than 5 retries
     df["TooManyRetries"] = df["Retries"] > 5
-    df["HasUnrecoverableError"] = df["Error"].apply(
-        lambda x: x[0] in UNRECOVERABLE_EXIT_CODES if isinstance(x, list) and x else False
-    )
+
+    if "Error" in df.columns: 
+        df["HasUnrecoverableError"] = df["Error"].apply(
+            lambda x: x[0] in UNRECOVERABLE_EXIT_CODES if isinstance(x, list) and x else False
+        )
 
     return df
 
