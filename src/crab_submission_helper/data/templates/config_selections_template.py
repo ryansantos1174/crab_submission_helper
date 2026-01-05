@@ -52,10 +52,10 @@ if not NLayers:
         add_channels  (process,  [ZtoEleProbeTrk],                   histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers + electronTPProducer, ignoreSkimmedCollections = True, forceNonEmptySkim=True)
 
     elif selection == "ZtoMuProbeTrk":
-        add_channels  (process,  [ZtoMuProbeTrk],                   histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers + muonTPProducer)
+        add_channels  (process,  [ZtoMuProbeTrk],                   histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers + muonTPProducer, ignoreSkimmedCollections = True, forceNonEmptySkim=True)
 
     elif selection == "MuonTagPt55":
-        add_channels  (process,  [MuonTagPt55],         histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers + muonMETTriggerProducer)
+        add_channels  (process,  [MuonTagPt55],         histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers + muonMETTriggerProducer, ignoreSkimmedCollections = True, forceNonEmptySkim=True)
 
     # Fiducial Maps
     elif selection == "MuonFiducial":
