@@ -174,18 +174,24 @@ def get_crab_output_directory(
         capture_output=True,
         cwd=run_directory,
         text=True,
-        check=True
-    ).stdout
+    )
+
+    if output.returncode != 0:
+        logger.error("Not able to find output directory!")
+        return "Not Found!"
+    
+
 
     # NOTE: Since we this regex looks for /store/group/lpclonglived/DisappTrks if we
     # eventually change storage locations, this will break.
     pattern = re.compile(r"/store/group/lpclonglived/DisappTrks/[^/]+/[^/]+/")
-    match = pattern.search(output)
+    match = pattern.search(output.stdout)
 
     if match:
         logger.debug("Output Directory: %s", match.group(0))
     else:
-        logger.debug("No match found. Command output: %s", output)
+        logger.debug("No match found. Command output: %s", output.stdout)
+        return "Not Found!"
     # Parse output for LFN
     return match.group(0)
 
