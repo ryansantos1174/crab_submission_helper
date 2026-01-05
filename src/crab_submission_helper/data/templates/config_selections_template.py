@@ -23,7 +23,7 @@ if not NLayers:
     if selection == "ZtoEE":
         add_channels  (process,  [ZtoEE],                           histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers, ignoreSkimmedCollections = True, forceNonEmptySkim=True)
 
-    if selection == "ZtoEE":
+    if selection == "ZtoMuMu":
         add_channels  (process,  [ZtoMuMu],                           histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers, ignoreSkimmedCollections = True, forceNonEmptySkim=True)
 
     if selection == "TauTagPt55":
