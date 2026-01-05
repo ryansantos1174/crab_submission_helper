@@ -6,3 +6,6 @@ __pycache__
 *.log
 /data/generated/20251017_1417/config_2022_cfg_template.py
 /data/generated/
+/dist/
+/uv.lock
+/src/crab_submission_helper/.env
