@@ -317,9 +317,10 @@ def merge_files(output_file: str, is_skim_file: bool):
         )
     logger.debug(output.args)
     logger.debug(output)
+
     # Remove file after merging to avoid accidental duplication
-    # if input_files.exists():
-    #     input_files.unlink()
+    if input_files.exists():
+        input_files.unlink()
 
     print("stdout: ", output.stdout)
     print("stderr: ", output.stderr)
