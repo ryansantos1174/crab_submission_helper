@@ -283,17 +283,20 @@ def find_files(hist_or_skim: str, directory: str):
         file.write("\n".join(output.splitlines()))  # Write each entry on a new line
 
 
-def merge_files(output_file: str):
+def merge_files(output_file: str, is_skim_file: bool):
     input_files = Path("listOfInputFiles.txt").resolve()
-    print(input_files)
 
     if not input_files.exists():
         logger.error("Input file doesn't exist!")
         return None, None, None
 
+    if is_skim_file:
+        command = f"edmCopyPickMerge inputFiles_load={input_files} outputFile={output_file}"
+    else:
+        command = f"hadd -O -j 8 {output_file} @{input_files}"
     try:
         output = subprocess.run(
-            f"hadd -O -j 8 {output_file} @{input_files}",
+            command,
             shell=True,
             capture_output=True,
             text=True,
