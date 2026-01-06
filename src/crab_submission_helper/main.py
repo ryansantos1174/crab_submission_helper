@@ -12,7 +12,7 @@ import pandas as pd
 
 from .lib import crab_helper as ch
 from .lib import google_sheet_helper as gsh
-from .lib.parse_helper import parse_template_files
+from .lib import parse_helper as ph
 from .lib.notifications import send_ntfy_notification, send_email
 from .lib.config import JobStatus, PROJECT_ROOT
 
@@ -121,7 +121,12 @@ def add_merge_subparser(subparsers, parent):
     parser.add_argument(
         "--skim", action="store_true", help="Flag to state you want skim files"
     )
-
+    parser.add_argument(
+        "--copy", action="store_true", help="Flag to state you want to copy merged file back to EOS"
+    )
+    parser.add_argument(
+        "--cleanup", action="store_true", help="Flag to state you want to delete the intermediate hist and skim files. Use with caution!!!!!"
+    )
 
 def build_parser():
     """Construct the top-level parser."""
@@ -173,7 +178,7 @@ def main():
         # and crab_template_nlayers.py will overwrite each other but the logic to avoid this
         # is inside batch_submit_jobs()
 
-        template_files = parse_template_files(
+        template_files = ph.parse_template_files(
             args.template, args.run_dir, args.template_config_file
         )
 
@@ -406,18 +411,35 @@ def main():
             return
 
         logger.debug("Finding files")
-        ch.find_files(hist_or_skim, output_directory)
+        matched_files: list[str] = ch.find_files(hist_or_skim, output_directory)
 
-        output_file_name = output_directory.split("/")[-2] + ".root"
-        logger.debug("Output file name: %s", output_file_name)
-        logger.debug("Merging files")
+        logger.debug("Found files: %s", matched_files)
 
-        # Merge files
-        ch.merge_files(output_file_name)
+        if args.group_files:
+            grouped_files = ph.group_files(matched_files, ph.group_by_selection)
+            logger.debug("File groupings: %s", list(grouped_files.keys()))
+
+            for grouping_label, files_to_merge in grouped_files.items(): 
+                # TODO: Deal with NLayers where they will have the same selection as the base selection
+                output_file_path = grouping_label + ".root"
+                logger.debug("Output file name: %s", output_file_path)
+                logger.debug("Merging files")
+
+                ch.merge_files(files_to_merge, output_file_path, hist_or_skim=="skim")
+        else:
+            output_file_path = output_directory.split("/")[-2] + ".root"
+
+            logger.debug("Output file name: %s", output_file_name)
+            logger.debug("Merging files")
+            ch.merge_files(matched_files, output_file_path, hist_or_skim == "skim")
+
 
         # Copy back to EOS space
-
+        if args.copy:
+            ch.copy_to_eos(output_directory, output_file_path) 
         # Remove unmerged files
+        if args.cleanup:
+            ch.cleanup_intermediate_files(output_directory)
 
         if args.email:
             subject = "Crab Merge"

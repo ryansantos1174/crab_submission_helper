@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from datetime import datetime
 import re
-from typing import Optional
+from typing import Optional, Callable
+from collections import defaultdict # Needed to setup empty dictionary that contains lists
 
 import json
 import logging
@@ -160,3 +161,35 @@ def parse_yaml(yaml_file_path:str) -> dict['str', ...]:
     with open(yaml_file_path, "r", encoding='utf-8') as f:
         data = yaml.safe_load(f)
     return data
+
+def group_files(input_file_list:list[str],
+                matching_function:Callable[[list], dict[str, list[str]]]))-> dict[str, list[str]]:
+    """
+     Group files together based off the output matching_function.
+
+    input_file_list: List of files that you would like to sort
+    matching_function:  Function that should take in a list of strings and group them together
+                        returning a dictionary with a key describing the grouping and a value
+                        that is a list of the groupings (ex. groupEven([1,2,3,4,5] -> {"odd" :[1,3,5], "even": [2,4]))
+    """
+    assert len(input_file_list) > 1, "Not enough input files to group properly!"
+    grouped_files: list[list[str]] = matching_function(input_file_list)
+    return grouped_files
+
+def group_by_selection(input_paths:list[str]):
+    """
+    Group file names by the selection that was ran to produce them.
+
+    Used for the disappearing tracks analysis where output files look like
+    skim_TauTagPt55_2026_01_03_22h44m20s_999.root. This function would group based
+    off of TauTagPt55 and any other unique selections that are there. 
+    """
+
+    grouped_files: dict[str, list[str]] = defaultdict(list) 
+    for path in input_paths:
+        selection = path.split('_')[1]
+        grouped_files[selection].append(path)
+
+    return grouped_files
+
+    

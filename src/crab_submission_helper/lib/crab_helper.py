@@ -7,8 +7,9 @@ import subprocess
 import datetime
 import logging
 from typing import Optional, Union, Callable, Dict
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
+import tempfile
 
 from . import parse_helper as parser
 from . import generators as gen
@@ -245,7 +246,7 @@ def grab_crab_directories(
     return list(base_dir.glob(glob_pattern))
 
 
-def find_files(hist_or_skim: str, directory: str):
+def find_files(hist_or_skim: str, directory: str)->list[str]:
     hist_pattern = "hist.*.root"
     skim_pattern = "skim.*.root"
     if hist_or_skim == "hist":
@@ -279,70 +280,141 @@ def find_files(hist_or_skim: str, directory: str):
             (e.stderr or "").strip(),
         )
 
+    # Create an output file with file paths for ease-of-use with hadd and edmCopyPickMerge
     with open("listOfInputFiles.txt", "w", encoding="utf-8") as file:
         file.write("\n".join(output.splitlines()))  # Write each entry on a new line
 
+    return output.splitlines()
 
-def merge_files(output_file: str, is_skim_file: bool):
-    input_files = Path("listOfInputFiles.txt").resolve()
+def merge_files(files_to_be_merged:list[str], output_file: str, is_skim_file: bool) -> Tuple(str,str,str):
 
-    if not input_files.exists():
-        logger.error("Input file doesn't exist!")
-        return None, None, None
+    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as tmp:
+        tmp.write("\n".join(files_to_be_merged))
+        tmp.close()
 
-    if is_skim_file:
-        command = f"edmCopyPickMerge inputFiles_load={input_files} outputFile={output_file}"
-    else:
-        command = f"hadd -O -j 8 {output_file} @{input_files}"
-    try:
-        output = subprocess.run(
-            command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        # Merging skim files requires edmCopyPickMerge and hist files can just be merged with hadd
+        if is_skim_file:
+            command = f"edmCopyPickMerge inputFiles_load={tmp.name} outputFile={output_file}"
+        else:
+            command = f"hadd -O -j 8 {output_file} @{tmp.name}"
+        try:
+            output = subprocess.run(
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                check=True
+            )
 
-    except subprocess.CalledProcessError as e:
-        logger.error(
-            "Failed to hadd output files together!"
-            "Command: %s\n"
-            "Return code: %s\n"
-            "----- stdout -----\n%s\n"
-            "----- stderr -----\n%s",
-            e.cmd,
-            e.returncode,
-            (e.stdout or "").strip(),
-            (e.stderr or "").strip(),
-        )
-    logger.debug(output.args)
-    logger.debug(output)
+        except subprocess.CalledProcessError as e:
+            logger.error(
+                "Failed to hadd output files together!"
+                "Command: %s\n"
+                "Return code: %s\n"
+                "----- stdout -----\n%s\n"
+                "----- stderr -----\n%s",
+                e.cmd,
+                e.returncode,
+                (e.stdout or "").strip(),
+                (e.stderr or "").strip(),
+            )
+        logger.debug(output.args)
+        logger.debug(output)
 
-    # Remove file after merging to avoid accidental duplication
-    if input_files.exists():
-        input_files.unlink()
 
-    print("stdout: ", output.stdout)
-    print("stderr: ", output.stderr)
     return output.stdout, output.stderr, output.returncode
 
-def write_to_eos(target_path:str, file_to_copy:str):
+def copy_to_eos(target_path:str, file_to_copy:str) -> None:
     """
     Function to copy files to EOS space
 
-    target_path: Path on EOS where you would like to write your files
+    target_path: Path on EOS where you would like to write your files (ie. don't prepend root://cmseos.fnal.gov//)
     file_to_copy: File you would like to copy
     """
-    ...
 
-def clear_intermediary_eos_files(target_path:str):
+    command = f"xrdcp {file_to_copy} root://cmseos.fnal.gov/{target_path}"
+
+    output = subprocess.run(
+        command,
+        shell=True,
+        capture_output=True,
+        text=True,
+        check=False
+    )
+
+    if output.returncode != 0:
+        logger.error("Unable to copy file to EOS space."
+                     "Return code was %s", output.returncode)
+        return
+
+    logger.info("Successfully copied %s to %s", file_to_copy, target_path)
+        
+
+
+
+def cleanup_intermediate_files(target_path:str)->None:
     """
     Clear up intermediate skim and hist files produced by crab
 
-    Will delete the thousands of skim and hist files created by crab after submitting
-    jobs.
+    Common directory path on EOS is something like:
+    /store/group/lpclonglived/DisappTrks/Muon0/ZtoTauToEleProbeTrk_2024C_v1_EGamma1/20260203_133411/0000
 
+    This command will remove all directories inside ZtoTauToEleProbeTrk_2024C_v1_EGamma1, this will include the log
+    directories.
+
+    This command should be used with extreme caution. There's no way to recover files after deletion. 
+    
     target_path: Path to directory containing the intermediate files that you would like
-                to remove
+                to remove (ex. /store/group/lpclonglived/DisappTrks/Muon0/ZtoTauToEleProbeTrk_2024C_v1_EGamma1/)
     """
-    ...
+    try: 
+        output = subprocess.run(
+            f'eos root://cmseos.fnal.gov ls {target_path}',
+            shell= True,
+            capture_output=True,
+            text = True,
+            check=True
+        )
+
+        subdirs_and_files:list[str] = output.stdout.rstrip().split('\n')
+
+        # This assumes that the only files will be root files
+        subdirectories = [path for path in subdirs_and_files if not path.endswith(".root")]
+
+        # Using PurePosixPath to avoid issues with trailing \ with direct string
+        # concatenation. The path is also on EOS so want to deter/avoid attempts to actually
+        # access the file since this needs to be done with eos specific commands
+        full_subdirectory_path:list[str] = [str(PurePosixPath(target_path) / subdir) for subdir in subdirectories]
+        
+    except CalledProcessError:
+        logger.error("Failed to grab subdirectories. Exiting.")
+        return
+
+    except Exception as e:
+        logger.error("Unexpected error: %s", e)
+        return
+        
+    try: 
+        # Confirm deletion before deleting subdirectories
+        logger.warning(
+            "The following EOS paths will be permanently deleted:\n%s",
+            "\n".join(f"  {p}" for p in full_subdirectory_path),
+        )
+
+        response = input("Type 'yes' to confirm deletion: ").strip()
+
+        if response.lower() != 'yes':
+            logger.info("Aborting deletion of directories")
+            return
+
+        for subdirectory in full_subdirectory_path: 
+            output = subprocess.run(
+                f'eos root://cmseos.fnal.gov rm -r {subdirectory}',
+                shell=True,
+                capture_output=False,
+                check=True
+            )
+
+    except CalledProcessError:
+        logger.error("Failed to remove files. Exiting.")
+
