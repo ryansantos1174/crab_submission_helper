@@ -286,7 +286,7 @@ def find_files(hist_or_skim: str, directory: str)->list[str]:
 
     return output.splitlines()
 
-def merge_files(files_to_be_merged:list[str], output_file: str, is_skim_file: bool) -> Tuple(str,str,str):
+def merge_files(files_to_be_merged:list[str], output_file: str, is_skim_file: bool) -> tuple[str,str,int]:
 
     with tempfile.NamedTemporaryFile(mode="w+", delete=True) as tmp:
         tmp.write("\n".join(files_to_be_merged))

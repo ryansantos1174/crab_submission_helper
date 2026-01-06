@@ -163,7 +163,7 @@ def parse_yaml(yaml_file_path:str) -> dict['str', ...]:
     return data
 
 def group_files(input_file_list:list[str],
-                matching_function:Callable[[list], dict[str, list[str]]]))-> dict[str, list[str]]:
+                matching_function:Callable[[list], dict[str, list[str]]])-> dict[str, list[str]]:
     """
      Group files together based off the output matching_function.
 
