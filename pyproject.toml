@@ -17,14 +17,13 @@ classifiers = [
 ]
 
 dependencies = [
-    "dotenv==0.9.9",
+    "python-dotenv",
     "google==3.0.0",
     "gspread==6.2.1",
     "numpy==2.0.2",
     "pandas==2.3.3",
     "PyYAML==6.0.3",
-    "tomli==2.3.0"
-
+    "tomli==2.3.0",
 ]
 
 [project.scripts]
