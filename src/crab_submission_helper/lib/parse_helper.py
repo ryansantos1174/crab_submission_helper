@@ -72,7 +72,6 @@ def parse_task_name(task_name:str)-> tuple:
                 match.group("dataset"))
     raise ValueError("Unable to parse data from task name")
 
-
 def parse_template_files(template_directory:Path, run_directory:Path,
                         template_yaml_file:Path) -> dict:
     """
@@ -102,7 +101,6 @@ def parse_template_files(template_directory:Path, run_directory:Path,
 
 def grab_submission_time(status_df:pd.DataFrame)-> datetime:
     ...
-
 
 def replace_template_values(template_file_path:str, replacement:dict,
                             save:bool =True, output_file:Optional[str]=None)->None:
