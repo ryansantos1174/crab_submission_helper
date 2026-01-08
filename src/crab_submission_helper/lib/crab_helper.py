@@ -15,6 +15,7 @@ import tempfile
 from . import parse_helper as parser
 from . import generators as gen
 from . import config as conf
+from .generators import missing_required_keys
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class CrabHelper():
             gen.add_dataset,
             gen.add_request_name,
             gen.add_lumi_mask,
-            gen.add_skim_files
+            self.add_skim_files
         ],
         test: bool = False,
     ):
@@ -246,6 +247,67 @@ class CrabHelper():
 
         base_dir = self.crab_directory
         return list(base_dir.glob(glob_pattern))
+
+    def create_skim_file_list(self, crab_task:str) -> Path:
+        """
+        Create a file that contains the path to all the skim files for a given selection.
+
+        Since there can be multiple groupings in a crab directory, we return the multiple skim file list files
+        one for each grouping
+
+        Return Path object pointing to skim_file_list that matches selection in crab_task.
+        (ie. If crab_task is "crab_TauTagPt55_Muon..." and there are also skim files for
+        TauTagPt55MetTrig inside the output directory this will only return the path to the
+        skim file list that contains skim files for TauTagPt55)
+        """
+        crab_task = (self.run_directory / "crab" / crab_task)
+
+        if not crab_task.exists():
+            raise FileNotFoundError(f"Unable to find directory: {crab_task.absolute()}")
+
+        directory:str = self.get_crab_output_directory(crab_task)
+        matched_files: list[str] = self.find_files(hist_or_skim = 'skim', directory)
+
+        grouped_files: dict[str, list[str]] = ph.group_files(matched_files, ph.group_by_selection)
+
+        logger.debug("Grouped Files: %s", grouped_files)
+
+        # Only keep skim files that match the selection stated in crab_task
+        selection, *_ = ph.parse_task_name(crab_task)
+        skim_file_list = grouped_files[selection]
+
+        skim_file = self.run_directory / f"{selection}_skim_files.txt"
+        skim_file.write_text("\n".join(skim_file_list))
+
+        return skim_file
+
+    def add_skim_files(self, input_values:dict):
+        """
+        File to interface with generate_template_values that will replace the __SKIM_FILE__
+        value inside of the template. Added here since grabbing the skim files
+        needs access to CrabHelper
+        """
+        # Generate crab_task directory from input_values
+        # When placed in crab directory crab_ is prepended
+        if isinstance(input_values["NLAYERS"], str):
+            input_values["NLAYERS"] = True if input_values["NLAYERS"].lower() == "true" else False
+
+        if not isinstance(input_values["NLAYERS"], bool):
+            raise TypeError("Unable to cast NLAYERS variable as a bool")
+
+        if not input_values["NLAYERS"]:
+            return {}
+
+        required_keys = ["REQUEST_NAME"]
+        if missing_required_keys(input_values, required_keys):
+            logging.error("Missing REQUEST_NAME key. Make sure you run this generator after add_request_name().")
+            raise KeyError("Missing required keys in values: REQUEST_NAME")
+
+        crab_task: str = "crab_" + input_values["REQUEST_NAME"]
+        skim_file: Path = self.create_skim_file_list(crab_task)
+        skim_file_path = skim_file.absolute()
+
+        return {"SKIM_FILE": skim_file_path}
 
 
     def find_files(self, hist_or_skim: str, directory: str)->list[str]:
