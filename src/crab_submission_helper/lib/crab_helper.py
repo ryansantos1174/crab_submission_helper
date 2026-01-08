@@ -27,12 +27,7 @@ class CrabHelper():
     def batch_submit_jobs(self,
         batch_file: str,
         template_files: Dict[str, str],
-        generating_functions: Union[Callable, list[Callable], None] = [
-            gen.add_dataset,
-            gen.add_request_name,
-            gen.add_lumi_mask,
-            self.add_skim_files
-        ],
+        generating_functions: Union[Callable, list[Callable], None] = None,
         test: bool = False,
     ):
         """
@@ -46,6 +41,14 @@ class CrabHelper():
 
         # Parse the YAML — returns a list of job dictionaries directly
         job_replacements = parser.parse_yaml(batch_file)
+
+        if generating_functions is None:
+                generating_functions = [
+                    gen.add_dataset,
+                    gen.add_request_name,
+                    gen.add_lumi_mask,
+                    self.add_skim_files,
+                ]
 
         # Normalize generating_functions to a list
         if generating_functions is not None and not isinstance(generating_functions, list):
@@ -102,7 +105,7 @@ class CrabHelper():
                 self.submit_crab_job(template_files[key])  # uncomment and implement your submission logic
 
 
-    def submit_crab_job(self, config_file_path: str) -> Optional(str):
+    def submit_crab_job(self, config_file_path: str) -> Optional[str]:
         try:
             output = subprocess.run(
                 f"crab submit {config_file_path}",
@@ -266,7 +269,7 @@ class CrabHelper():
             raise FileNotFoundError(f"Unable to find directory: {crab_task.absolute()}")
 
         directory:str = self.get_crab_output_directory(crab_task)
-        matched_files: list[str] = self.find_files(hist_or_skim = 'skim', directory)
+        matched_files: list[str] = self.find_files(hist_or_skim = 'skim', directory=directory)
 
         grouped_files: dict[str, list[str]] = ph.group_files(matched_files, ph.group_by_selection)
 
