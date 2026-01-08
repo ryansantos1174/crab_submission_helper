@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from gspread.exceptions import APIError
 import pandas as pd
 
-from .lib import crab_helper as ch
+from .lib.crab_helper import CrabHelper
 from .lib import google_sheet_helper as gsh
 from .lib import parse_helper as ph
 from .lib.notifications import send_ntfy_notification, send_email
@@ -170,6 +170,8 @@ def main():
     )
     logger = logging.getLogger(__name__)
 
+    ch = CrabHelper(run_directory=args.run_dir, crab_directory=args.directory)
+
     if args.command == "submit":
         # TODO: Add in check to see if job has already been submitted which would cause crab to not submit job
 
@@ -181,9 +183,8 @@ def main():
         template_files = ph.parse_template_files(
             args.template, args.run_dir, args.template_config_file
         )
-
         ch.batch_submit_jobs(
-            args.batch_file, template_files, test=args.test, run_directory=args.run_dir
+            args.batch_file, template_files, test=args.test
         )
 
         if args.email and not args.test:
@@ -204,7 +205,7 @@ def main():
 
     if args.command == "status":
         logger.info("Running crab status")
-        crab_directories = ch.grab_crab_directories(crab_directory=args.directory)
+        crab_directories = ch.grab_crab_directories("crab_*")
 
         failed_jobs_status: int = 0
         processing_jobs_status: int = 0
@@ -228,13 +229,9 @@ def main():
         unknown_job = 0
         for directory in crab_directories:
             logger.debug("Looping over directories")
-            statuses: pd.DataFrame = ch.get_crab_status(
-                directory, run_directory=args.run_dir
-            )
+            statuses: pd.DataFrame = ch.get_crab_status(directory)
 
-            output_directory: str = ch.get_crab_output_directory(
-                directory, run_directory=args.run_dir
-            )
+            output_directory: str = ch.get_crab_output_directory(directory)
 
             if (statuses["State"] == "finished").all():
                 logger.info(
@@ -350,7 +347,7 @@ def main():
 
     if args.command == "resubmit":
         logger.info("Running crab resbumit")
-        crab_directories = ch.grab_crab_directories(crab_directory=args.directory)
+        crab_directories = ch.grab_crab_directories()
         logger.debug(
             "Running over following crab directories %s",
             crab_directories,
@@ -362,7 +359,6 @@ def main():
             return_code, command = ch.crab_resubmit(
                 str(directory),
                 resubmit_options={"maxmemory": 4000},
-                run_directory=args.run_dir,
             )
 
             logger.debug("Ran crab command: %s", command)
@@ -394,9 +390,7 @@ def main():
             return
 
         crab_directory_path = Path(args.directory) / Path(args.task)
-        output_directory = ch.get_crab_output_directory(
-            str(crab_directory_path), run_directory=args.run_dir
-        )
+        output_directory = ch.get_crab_output_directory(str(crab_directory_path))
 
         logger.debug("Output directory of task: %s", output_directory)
 
