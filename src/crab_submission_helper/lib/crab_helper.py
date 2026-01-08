@@ -77,20 +77,19 @@ class CrabHelper():
                     template_path, job_dict, save=True, output_file=output_path
                 )
 
-                # Save another copy for records
-                # Grab request name
-                # Save another copy for records, including request name in filename
-                request_name = job_dict.get("REQUEST_NAME", "unnamed_request")
-                template_name = Path(template_path).stem
-                template_ext = Path(template_path).suffix
+                if not test:
+                    # Save another copy for records, including request name in filename
+                    request_name = job_dict.get("REQUEST_NAME", "unnamed_request")
+                    template_name = Path(template_path).stem
+                    template_ext = Path(template_path).suffix
 
-                # Create a unique filename: <template>_<request>.ext
-                outfile_name = f"{template_name}_{request_name}{template_ext}"
-                outfile = timestamp_dir / outfile_name
+                    # Create a unique filename: <template>_<request>.ext
+                    outfile_name = f"{template_name}_{request_name}{template_ext}"
+                    outfile = timestamp_dir / outfile_name
 
-                parser.replace_template_values(
-                    template_path, job_dict, save=True, output_file=outfile
-                )
+                    parser.replace_template_values(
+                        template_path, job_dict, save=True, output_file=outfile
+                    )
 
             if not test:
                 # Find entry that corresponds to crab configuration file
