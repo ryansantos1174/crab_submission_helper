@@ -11,6 +11,7 @@ import logging
 import tomli
 
 from . import config as conf
+from . import crab_helper as ch
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,11 @@ def add_skim_files(values:str):
         logging.error("Missing REQUEST_NAME key. Make sure you run this generator after add_request_name().")
         raise KeyError("Missing required keys in values: REQUEST_NAME")
 
-    #skim_file_path
+    # Find output directory
+    ch.
+
+    # Create list of skim files
+
     #return {"SKIM_FILE": skim_file_path}
 
 def generate_template_values(
