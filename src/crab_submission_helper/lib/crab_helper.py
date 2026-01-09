@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CrabHelper():
-    crab_directory: Path | None = None
-    run_directory: Path | None = None
+    crab_directory: Optional[Path] = None
+    run_directory: Optional[Path] = None
 
     def batch_submit_jobs(self,
         batch_file: str,
@@ -271,12 +271,12 @@ class CrabHelper():
         directory:str = self.get_crab_output_directory(crab_task)
         matched_files: list[str] = self.find_files(hist_or_skim = 'skim', directory=directory)
 
-        grouped_files: dict[str, list[str]] = ph.group_files(matched_files, ph.group_by_selection)
+        grouped_files: dict[str, list[str]] = parser.group_files(matched_files, parser.group_by_selection)
 
         logger.debug("Grouped Files: %s", grouped_files)
 
         # Only keep skim files that match the selection stated in crab_task
-        selection, *_ = ph.parse_task_name(crab_task)
+        selection, *_ = parser.parse_task_name(crab_task.name)
         skim_file_list = grouped_files[selection]
 
         skim_file = self.run_directory / f"{selection}_skim_files.txt"
@@ -310,7 +310,7 @@ class CrabHelper():
         skim_file: Path = self.create_skim_file_list(crab_task)
         skim_file_path = skim_file.absolute()
 
-        return {"SKIM_FILE": skim_file_path}
+        return {"SKIM_FILE": str(skim_file_path)}
 
 
     def find_files(self, hist_or_skim: str, directory: str)->list[str]:
