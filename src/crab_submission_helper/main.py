@@ -25,7 +25,7 @@ load_dotenv()
 def add_common_arguments(parser):
     """Add arguments shared by all subcommands."""
     parser.add_argument(
-        "-d", "--directory", required=True, help="Path to the CRAB project directory"
+        "-d", "--directory", required=True, help="Path to the CRAB project directory", type=Path
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose logging messages"
@@ -38,6 +38,7 @@ def add_common_arguments(parser):
         "--rundir",
         default=None,
         dest="run_dir",
+        type=Path,
         help="Path to directory where commands will be run",
     )
     parser.add_argument(
