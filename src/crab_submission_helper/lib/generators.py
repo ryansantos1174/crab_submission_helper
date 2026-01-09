@@ -11,23 +11,12 @@ import logging
 import tomli
 
 from . import config as conf
+from . import crab_helper as ch
 
 logger = logging.getLogger(__name__)
 
 def missing_required_keys(dictionary: dict, required_keys: list[str]) -> list[str]:
     return [k for k in required_keys if k not in dictionary]
-
-def add_skim_files(values:str):
-    """
-    Add path to txt file containing skim files to dictionary
-    """
-    required_keys = ["REQUEST_NAME"]
-    if missing_required_keys(values, required_keys):
-        logging.error("Missing REQUEST_NAME key. Make sure you run this generator after add_request_name().")
-        raise KeyError("Missing required keys in values: REQUEST_NAME")
-
-    #skim_file_path
-    #return {"SKIM_FILE": skim_file_path}
 
 def generate_template_values(
     input_values: dict[str, Any],
