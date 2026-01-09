@@ -13,6 +13,7 @@ import pandas as pd
 from .lib.crab_helper import CrabHelper
 from .lib import google_sheet_helper as gsh
 from .lib import parse_helper as ph
+from .lib import utils
 from .lib.notifications import send_ntfy_notification, send_email
 from .lib.config import JobStatus, PROJECT_ROOT
 
@@ -321,29 +322,18 @@ def main():
     if args.command == "recover":
         # Should only pass a single crab directory don't need to recover every job in crab directory
         # Parse task name to determine selection, year, era, and NLayers
-        print("Recovery has yet to be implemented! Sorry :'( ")
-        sys.exit(1)
 
-        # selection, year, era, version, dataset  = parse_task_name(args.crab_task)
+        # Grab config files from previously generated task
+        configuration_files:list[Path] = utils.grab_configuration_file()
 
-        # template_files = {
-        #     "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
-        #     "crab_template.py" : Path(args.run_dir) / "crab_cfg.py",
-        #     "config_selections_template.py": Path(args.run_dir) / "../python/config.py"
-        # }
+        # Run crab report to generate lumimask
 
-        # replace_template_values(template_files, replacement)
-        # ch.submit_crab_job()
-        # args.crab_task
+        # Replace values in crab_config
 
-        # Run crab recovery command to generate necessary json files
+        # Submit job
 
-        # Check whether it is an NLayers or not which will tell you whether you need to check the files
-        # or the lumisection to process
 
-        # Template file should be nearly identical so that the files get
-        # placed in the same output directory but there needs to be a new
-        # requestName so as to not collide with previous task.
+
 
     if args.command == "resubmit":
         logger.info("Running crab resbumit")
