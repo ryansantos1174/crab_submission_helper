@@ -188,8 +188,12 @@ def group_by_selection(input_paths:list[str]):
     """
 
     grouped_files: dict[str, list[str]] = defaultdict(list) 
+    i = 0
     for path in input_paths:
-        selection = path.split('_')[1]
+        if i == 0:
+            print("Path: ", path)
+        i+=1
+        selection = path.rsplit('/', 1)[1].split('_')[1]
         grouped_files[selection].append(path)
 
     return grouped_files

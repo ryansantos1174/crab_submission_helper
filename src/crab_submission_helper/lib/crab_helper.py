@@ -270,16 +270,20 @@ class CrabHelper():
 
         directory:str = self.get_crab_output_directory(crab_task)
         matched_files: list[str] = self.find_files(hist_or_skim = 'skim', directory=directory)
+        print("Matched skim files: %s", matched_files)
 
         grouped_files: dict[str, list[str]] = parser.group_files(matched_files, parser.group_by_selection)
+        print("Grouped files: %s", grouped_files.keys())
 
-        logger.debug("Grouped Files: %s", grouped_files)
 
         # Only keep skim files that match the selection stated in crab_task
-        selection, *_ = parser.parse_task_name(crab_task.name)
+        selection, year, era, version, dataset = parser.parse_task_name(crab_task.name)
+        print(selection)
         skim_file_list = grouped_files[selection]
 
-        skim_file = self.run_directory / f"{selection}_skim_files.txt"
+        print(len(skim_file_list))
+
+        skim_file = self.run_directory / f"{selection}_{year}{era}_{version}_{dataset}_skim_files.txt"
         skim_file.write_text("\n".join(skim_file_list))
 
         return skim_file
