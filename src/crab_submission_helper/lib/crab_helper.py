@@ -143,6 +143,70 @@ class CrabHelper():
                 (e.stderr or "").strip(),
             )
 
+    def crab_report(self, task_directory: Path) -> None:
+        """
+        Run crab_report on the given crab task
+
+        Run crab_report on task to generate the necessary notFinishedLumis.json
+        file needed for crab recovery tasks. This function only return notFinishedLumis.json
+        and therefore assumes that your task both splits by lumi and has failed lumisections.
+
+        :param task_directory: Path object pointing to crab task directory (ie. directory inside crab directory).
+            Needs to be resolvable relative to the run directory.
+        :type task_directory: Path
+        :return: None
+        :rtype: None
+        :raises FileNotFoundError: Raised when task_directory cannot be found
+        :raises CalledProcessError: Raised when running crab report fails
+        """
+
+        # Check if task_directory is resolvable
+        if not task_directory.exists():
+            raise FileNotFoundError(f"Could not resolve task_directory: {task_directory.absolute()}")
+
+        subprocess.run("crab report -d {str(task_directory)}",
+                       run_directory=self.run_directory,
+                       check=True,
+                       shell=True,
+                       )
+
+        # Check for notFinishedLumis.json
+        lumimask_file_path  = task_directory / "results" / "notFinishedLumis.json"
+        if not lumimask_file_path.exists():
+            raise FileNotFoundError("Could not find notFinishedLumis.json file for task: {task_directory}")
+
+        return lumimask_file_path
+
+    def grab_lumimask_file(self, task_directory:Path, lumimask_file:str = "notFinishedLumis.json") -> Path:
+        """
+        Grab lumimask file from crab directory
+
+        Grab the lumimask file created by crab report necessary for a recovery task.
+        Usually this is notFinishedLumis.json, but can be different depending on whether or
+        not the job was split by lumisection.
+
+        :param task_directory: Path object pointing to crab task directory (ie. directory inside crab directory).
+            Needs to be resolvable relative to the run directory.
+        :type task_directory: Path
+        :param lumimask_file: Name of the lumimask file that you would like to grab. Should exist inside of the results
+            directory inside the crab task directory
+        :type lumimask_file: str
+        :return: Path
+        :rtype: Path
+        :raises FileNotFoundError: Raised when lumimask cannot be found
+        """
+
+        lumimask_path = task_directory / "results" / lumimask_file
+
+        if not lumimask_path.exists():
+            raise FileNotFoundError("Could not find lumimask file: {str(lumimask_path)}")
+
+        return lumimask_path
+
+
+
+
+
     def get_crab_status(self, task_directory: str) -> dict:
         try:
             output = subprocess.run(

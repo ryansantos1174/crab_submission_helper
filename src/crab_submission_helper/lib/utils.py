@@ -3,6 +3,7 @@ Miscellaneous functions that are used to help write other code (ie. functions
 that don't necessarily help with crab commands, parsing, notifications, or google sheet
 functionality).
 """
+import re
 
 from pathlib import Path
 from .config import PROJECT_ROOT
@@ -51,3 +52,90 @@ def grab_configuration_file(
         )
 
     return matched_config_files
+
+def edit_crab_config_for_recovery(
+        crab_config: Path,
+        lumimask_path: Path,
+        units_per_job: int = 10
+) -> Path:
+    """
+    Edit crab configuration file to make it suitable for a crab recovery task.
+
+    Replace some values within an already generated crab configuration. This
+    includes the request_name where we append recovery_v{1,2,...}, the lumimask
+    where we use the lumimask created by crab report, and the unitsPerJob
+
+    :param crab_config: Path object pointing to crab configuration file used by
+        task that you are creating recovery task for
+    :type crab_config: Path
+    :param lumimask_path: Path to lumimask file you would like to use in recovery task
+    :type lumimask_path: Path
+    :param unitsPerJob: Number of units (generally lumisections) you want to process
+        in each crab job. This parameter can be optimized to help with memory issues.
+    :type unitsPerJob: int
+    :return: Path to edited crab configuration file
+    :rtype: Path
+
+    :raises FileNotFoundError: Raises if crab_config or lumimask file cannot be resolved
+    """
+    if not crab_config.exists():
+        raise FileNotFoundError(f"Could not resolve crab configuration file: {str(crab_config)} ")
+    if not lumimask_path.exists():
+        raise FileNotFoundError(f"Could not resolve lumimask file: {str(lumimask_path)}")
+
+    request_name_pattern = re.compile(
+        r"^(\s*config\.General\.requestName\s*=\s*)(.+?)(_v(\d+))?$",
+        re.MULTILINE,
+    )
+
+    lumimask_pattern = re.compile(
+        r"(\s*config\.Data\.lumiMask\s*=\s*)(.+)"
+    )
+
+    units_per_job_pattern = re.compile(
+        r"(\s*config\.Data\.unitsPerJob\s*=\s*)(.+)"
+    )
+
+    text = crab_config.read_text()
+
+    # Update request_name while incrementing version number
+    def _requestname_repl(m: re.Match) -> str:
+        lhs = m.group(1)
+        base = m.group(2)
+        version_digits = m.group(4)
+
+        if version_digits is None:
+            return f"{lhs}{base}_v1"
+        else:
+            return f"{lhs}{base}_v{int(version_digits) + 1}"
+
+    text, n_subs = request_name_pattern.subn(_repl, text)
+
+    if n_subs == 0:
+        raise ValueError(
+            "No config.General.requestName assignment found to increment version."
+        )
+
+    def _lumimask_repl(m: re.Match) -> str:
+        lhs = m.group(1)
+        return f"{lhs}{lumimask_path}"
+
+    text, n_subs = lumimask_pattern.subn(_lumimask_repl, text)
+
+    if n_subs == 0:
+        raise ValueError(
+            "No config.Data.lumiMask pattern found!"
+        )
+
+    def _units_repl(m: re.Match) -> str:
+        lhs = m.group(1)
+        return f"{lhs}{units_per_job}"
+
+    text, n_subs = units_per_job_pattern.subn(_units_repl, text)
+
+    if n_subs == 0:
+        raise ValueError(
+            "No config.Data.unitsPerJob pattern found!"
+        )
+
+

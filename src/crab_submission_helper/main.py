@@ -102,7 +102,8 @@ def add_recovery_subparser(subparsers, parent):
     parser.add_argument(
         "--crab_task",
         type=str,
-        help="Crab task to generate recovery task for",
+        help=("Crab task to generate recovery task for."
+              "Path should be relative to --directory argument"),
         required=True,
     )
 
@@ -320,16 +321,26 @@ def main():
         logger.info("Status command finished")
 
     if args.command == "recover":
-        # Should only pass a single crab directory don't need to recover every job in crab directory
-        # Parse task name to determine selection, year, era, and NLayers
+        task_path: Path = Path(args.directory) / args.crab_task
 
         # Grab config files from previously generated task
-        configuration_files:list[Path] = utils.grab_configuration_file()
+        configuration_files:list[Path] = utils.grab_configuration_file(task_path)
 
         # Run crab report to generate lumimask
+        ch.crab_report(task)
+        ch.grab_lumimask_file(task)
 
         # Replace values in crab_config
+        crab_config: Optional(Path) = None
+        for conf_file in configuration_file:
+            if "crab" in conf_file.name:
+                crab_config = conf_file
+                break
 
+        if not crab_config:
+            raise ValueError("Couldn't find crab configuration file. Something went very wrong!")
+
+        utils.edit_crab_config_for_recovery(crab_config)
         # Submit job
 
 
