@@ -12,8 +12,14 @@ import yaml
 from crab_submission_helper.lib.crab_helper import (
     CrabHelper
 )
+<<<<<<< variant A
 import crab_submission_helper.lib.generators as gen
+<<<<<<< HEAD
 >>>>>>> decf85c (Fix NLayers submission (#2))
+=======
+>>>>>>> variant B
+======= end
+>>>>>>> afcc5ea (Start tests for crab_helper.py)
 
 @pytest.fixture
 def crab_directory(tmp_path):
@@ -25,8 +31,11 @@ def crab_directory(tmp_path):
 =======
     task_results_directory = crab_directory / "crab_MySelection_2024C_v1_Muon0" / "results"
     task_results_directory.mkdir(parents=True)
+<<<<<<< HEAD
     (crab_directory / "crab_TauTagPt55_2024C_v1_Muon0").mkdir()
 >>>>>>> decf85c (Fix NLayers submission (#2))
+=======
+>>>>>>> afcc5ea (Start tests for crab_helper.py)
 
 
     return {"run_directory": run_directory,
