@@ -41,6 +41,13 @@ def add_common_arguments(parser):
         dest="run_dir",
         help="Path to directory where commands will be run",
     )
+
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Generate submission files but do not submit them",
+    )
+
     parser.add_argument(
         "--email", action="store_true", help="Send a notification to your email"
     )
@@ -67,11 +74,6 @@ def add_submit_subparser(subparsers, parent):
     )
     parser.add_argument(
         "--batch_file", type=str, help="Path to batch submission yaml file"
-    )
-    parser.add_argument(
-        "--test",
-        action="store_true",
-        help="Generate submission files but do not submit them",
     )
     return parser
 
@@ -105,6 +107,14 @@ def add_recovery_subparser(subparsers, parent):
         help=("Crab task to generate recovery task for."
               "Path should be relative to --directory argument"),
         required=True,
+    )
+
+    parser.add_argument(
+        "--units_per_job",
+        type=int,
+        help=("Crab task to generate recovery task for."
+              "Path should be relative to --directory argument"),
+        default = 10
     )
 
 
@@ -327,21 +337,50 @@ def main():
         configuration_files:list[Path] = utils.grab_configuration_file(task_path)
 
         # Run crab report to generate lumimask
-        ch.crab_report(task)
-        ch.grab_lumimask_file(task)
+        ch.crab_report(task_path)
+        lumi_mask_path = ch.grab_lumimask_file(task_path)
 
         # Replace values in crab_config
         crab_config: Optional(Path) = None
-        for conf_file in configuration_file:
+        for conf_file in configuration_files:
             if "crab" in conf_file.name:
                 crab_config = conf_file
+                configuration_files.remove(conf_file)
                 break
 
         if not crab_config:
             raise ValueError("Couldn't find crab configuration file. Something went very wrong!")
 
-        utils.edit_crab_config_for_recovery(crab_config)
+        recovery_crab_config: Path = utils.edit_crab_config_for_recovery(crab_config, lumi_mask_path, args.units_per_job)
+
+        # Copy files to correct locations
+        recovery_crab_config.copy(Path(args.directory) / "crab_cfg.py") 
+
+        template_file_config_file = PROJECT_ROOT / "configs" / "templates.yml"
+        template_data = ph.parse_yaml(str(template_file_config_file.absolute()))
+
+        template_path_mapping = template_data['templates']
+
+        for template_map in template_path_mapping:
+            template_file_name = template_map['input']
+            template_file_output_path = template_map['output']
+
+            template_file_output_path = Path(args.directory) / template_file_output_path
+
+            if not template_file_output_path.parent.exists():
+                raise FileNotFoundError(f"Path to write config file doesn't exist: {str(template_file_output_path)}")
+
+
+            for conf_file in configuration_files: 
+                if template_file_name in conf_file:
+                    conf_file.copy(template_file_output_path)
+
         # Submit job
+        recovery_crab_config_path_relative = recovery_crab_config.relative_to(args.directory)
+
+        if not args.test: 
+            ch.submit_crab_job(str(recovery_crab_config_path_relative))
+        
 
 
 

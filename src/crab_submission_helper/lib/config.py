@@ -5,6 +5,7 @@ from pathlib import Path
 from enum import Enum, auto
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+DATA_DIR = PROJECT_ROOT / "src" / "crab_submission_helper" / "data"
 
 class JobStatus(Enum):
     Failed = auto()

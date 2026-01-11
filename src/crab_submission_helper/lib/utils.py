@@ -4,9 +4,10 @@ that don't necessarily help with crab commands, parsing, notifications, or googl
 functionality).
 """
 import re
+import datetime
 
 from pathlib import Path
-from .config import PROJECT_ROOT
+from .config import PROJECT_ROOT, DATA_DIR
 
 
 def grab_configuration_file(
@@ -84,7 +85,7 @@ def edit_crab_config_for_recovery(
         raise FileNotFoundError(f"Could not resolve lumimask file: {str(lumimask_path)}")
 
     request_name_pattern = re.compile(
-        r"^(\s*config\.General\.requestName\s*=\s*)(.+?)(_v(\d+))?$",
+        r"^(\s*config\.General\.requestName\s*=\s*)(.*?)(?:\s*\+\s*'(_recovery_v(\d+))')?\s*$",
         re.MULTILINE,
     )
 
@@ -101,15 +102,14 @@ def edit_crab_config_for_recovery(
     # Update request_name while incrementing version number
     def _requestname_repl(m: re.Match) -> str:
         lhs = m.group(1)
-        base = m.group(2)
+        base_expr = m.group(2).rstrip()
         version_digits = m.group(4)
 
         if version_digits is None:
-            return f"{lhs}{base}_v1"
-        else:
-            return f"{lhs}{base}_v{int(version_digits) + 1}"
+            return f"{lhs}{base_expr} + '_recovery_v1'"
+        return f"{lhs}{base_expr} + '_recovery_v{int(version_digits) + 1}'"
 
-    text, n_subs = request_name_pattern.subn(_repl, text)
+    text, n_subs = request_name_pattern.subn(_requestname_repl, text)
 
     if n_subs == 0:
         raise ValueError(
@@ -118,7 +118,7 @@ def edit_crab_config_for_recovery(
 
     def _lumimask_repl(m: re.Match) -> str:
         lhs = m.group(1)
-        return f"{lhs}{lumimask_path}"
+        return f"{lhs}'{lumimask_path}'"
 
     text, n_subs = lumimask_pattern.subn(_lumimask_repl, text)
 
@@ -138,4 +138,24 @@ def edit_crab_config_for_recovery(
             "No config.Data.unitsPerJob pattern found!"
         )
 
+    timestamp_dir = (
+        DATA_DIR
+        / "generated"
+        / datetime.datetime.now().strftime("%Y%m%d_%H%M")
+    )
+    timestamp_dir.mkdir(parents=True)
 
+    # Write to timestamp dir and return path to it
+    crab_recovery_config_file = timestamp_dir / (crab_config.stem + "_recovery" + crab_config.suffix)
+    
+    crab_recovery_config_file.write_text(text)
+
+    return crab_recovery_config_file
+
+
+
+    
+
+    
+
+    
