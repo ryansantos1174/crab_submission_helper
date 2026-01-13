@@ -204,17 +204,17 @@ class CrabHelper():
             self,
             eos_directory:str
     ) -> list[str]:
-    """
-    Grab sudirectories within a EOS directory.
+        """
+        Grab sudirectories within a EOS directory.
 
-    This is used to ensure that each timestamped directory is merged separately to avoid
-    accidental duplication of events
-    """
+        This is used to ensure that each timestamped directory is merged separately to avoid
+        accidental duplication of events
+        """
 
-    # Check if eos_directory ends in trailing / otherwise exit
-    if not eos_directory[-1] == '/':
-        logger.error("Trailing / was missing in eos_directory parameter.")
-        return []
+        # Check if eos_directory ends in trailing / otherwise exit
+        if not eos_directory[-1] == '/':
+            logger.error("Trailing / was missing in eos_directory parameter.")
+            return []
 
         try:
             output = subprocess.run(
@@ -239,10 +239,11 @@ class CrabHelper():
             )
             return []
 
-        directory_contents = output.stdout
+        directory_contents = output.stdout.splitlines()
         logger.info("The contents of directory is %s", directory_contents)
 
         return [eos_directory + subdir for subdir in directory_contents]
+
 
 
 
