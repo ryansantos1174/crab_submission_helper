@@ -374,7 +374,8 @@ class CrabHelper():
                     shell=True,
                     capture_output=True,
                     text=True,
-                    check=True
+                    check=True,
+                    cwd=self.run_directory
                 )
 
             except subprocess.CalledProcessError as e:

@@ -416,7 +416,7 @@ def main():
 
             for grouping_label, files_to_merge in grouped_files.items(): 
                 # TODO: Deal with NLayers where they will have the same selection as the base selection
-                output_file_path = grouping_label + ".root"
+                output_file_path = grouping_label + str(args.task) + ".root"
                 logger.debug("Output file name: %s", output_file_path)
                 logger.debug("Merging files")
 
@@ -424,7 +424,6 @@ def main():
         else:
             output_file_path = output_directory.split("/")[-2] + ".root"
 
-            logger.debug("Output file name: %s", output_file_name)
             logger.debug("Merging files")
             ch.merge_files(matched_files, output_file_path, hist_or_skim == "skim")
 
@@ -438,9 +437,9 @@ def main():
 
         if args.email:
             subject = "Crab Merge"
-            body = f"The files for task {args.task} have been merged. The merged file can be found at {output_file_name}"
+            body = f"The files for task {args.task} have been merged. The merged file can be found at {args.run_dir + output_file_path}"
             send_email(subject, body, os.environ["EMAIL"])
         if args.ntfy:
-            body = f"The files for task {args.task} have been merged. The merged file can be found at {output_file_name}"
+            body = f"The files for task {args.task} have been merged. The merged file can be found at {args.run_dir + output_file_path}"
             send_ntfy_notification(body)
         logger.info("Merge command finished")
