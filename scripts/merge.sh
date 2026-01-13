@@ -11,7 +11,39 @@ LOG_PATH="/uscms_data/d3/delossan/${LOG_FILE}"
 # Add crab directories here relative to the crab directory
 # ie. crab_TauTagPt55_2024C_v1_Muon0
 TASKS=(
-
+#    crab_ZtoTauToMuProbeTrk_2024C_v1_Muon1
+    crab_ZtoTauToEleProbeTrk_2024C_v1_EGamma1
+    crab_TriggerAnalysis_2024C_v1_Muon0
+    crab_TriggerAnalysis_2024C_v1_Muon1
+    crab_TauTagPt55_2024C_v1_Muon0
+    crab_TauTagPt55_2024C_v1_Muon1
+    crab_ZtoTauToMuProbeTrk_2024D_v1_Muon0
+    crab_ZtoTauToEleProbeTrk_2024D_v1_EGamma0
+    crab_ZtoTauToEleProbeTrk_2024D_v1_EGamma1
+    crab_ZtoTauToMuProbeTrk_2024G_v1_Muon0
+    crab_TauTagPt55_2024G_v1_Muon0
+    crab_TriggerAnalysis_2024G_v1_Muon0
+    crab_ZtoTauToMuProbeTrk_2024H_v1_Muon0
+    crab_ZtoTauToMuProbeTrk_2024H_v1_Muon1
+    crab_ZtoTauToEleProbeTrk_2024H_v1_EGamma0
+    crab_ZtoTauToEleProbeTrk_2024H_v1_EGamma1
+    crab_TauTagPt55_2024H_v1_Muon0
+    crab_TauTagPt55_2024H_v1_Muon1
+    crab_TriggerAnalysis_2024H_v1_Muon0
+    crab_ZtoTauToMuProbeTrk_2024I_v1_Muon0
+    crab_ZtoTauToMuProbeTrk_2024I_v1_Muon1
+    crab_ZtoTauToEleProbeTrk_2024I_v1_EGamma0
+    crab_ZtoTauToEleProbeTrk_2024I_v1_EGamma1
+    crab_TauTagPt55_2024I_v1_Muon0
+    crab_TauTagPt55_2024I_v1_Muon1
+    crab_TriggerAnalysis_2024I_v1_Muon0
+    crab_TriggerAnalysis_2024I_v1_Muon1
+    crab_ZtoTauToMuProbeTrk_2024I_v2_Muon1
+    crab_ZtoTauToEleProbeTrk_2024I_v2_EGamma0
+    crab_ZtoTauToEleProbeTrk_2024I_v2_EGamma1
+    crab_TauTagPt55_2024I_v2_Muon0
+    crab_TauTagPt55_2024I_v2_Muon1
+    crab_TriggerAnalysis_2024I_v2_Muon1
 )
 
 cd "${CMSSW_SRC}"
@@ -20,8 +52,11 @@ source /cvmfs/cms.cern.ch/cmsset_default.sh
 eval "$(scramv1 runtime -sh)"
 set -u
 
-
-crab_helper merge -v --hist --copy --cleanup -r "${TEST_DIR}" \
-    -l "${LOG_PATH}" \
-    -d "${CRAB_DIR}" \
-    --task
+# Merge each task
+for task in "${TASKS[@]}"; do
+    echo "=== Merging task: ${task} ==="
+    crab_helper merge -v --hist --copy -r "${TEST_DIR}" \
+        -l "${LOG_PATH}" \
+        -d "${CRAB_DIR}" \
+        --task "${task}"
+done

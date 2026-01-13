@@ -2,8 +2,8 @@
 set -euo pipefail
 
 CMSSW_VERSION="CMSSW_15_0_10"
-BATCH_FILE="2024_Tau_background.yml"
-LOG_FILE="TauBackground_2024.log"
+BATCH_FILE="2024_FakeTracks_background.yml"
+LOG_FILE="FakeTracks_2024EF.log"
 
 CMSSW_SRC="/uscms_data/d3/delossan/${CMSSW_VERSION}/src"
 TEST_DIR="${CMSSW_SRC}/DisappTrks/BackgroundEstimation/test"

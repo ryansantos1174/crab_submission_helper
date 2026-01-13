@@ -354,7 +354,7 @@ class CrabHelper():
 
     def merge_files(self, files_to_be_merged:list[str], output_file: str, is_skim_file: bool) -> tuple[str,str,int]:
 
-        with tempfile.NamedTemporaryFile(mode="w+", delete=True) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
             tmp.write("\n".join(files_to_be_merged))
             tmp.close()
 
