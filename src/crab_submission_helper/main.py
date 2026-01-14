@@ -422,7 +422,7 @@ def main():
 
                 for grouping_label, files_to_merge in grouped_files.items():
                     # TODO: Deal with NLayers where they will have the same selection as the base selection
-                    output_file_path = grouping_label + "_" + str(args.task) +"_" + subdir + ".root"
+                    output_file_path = grouping_label + "_" + str(args.task) +"_" + subdir.rsplit('/', maxsplit=1)[-1] + ".root"
                     logger.debug("Output file name: %s", output_file_path)
                     logger.debug("Merging files")
 
