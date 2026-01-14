@@ -423,12 +423,19 @@ def main():
                     logger.debug("Output file name: %s", output_file_path)
                     logger.debug("Merging files")
 
-                    ch.merge_files(files_to_merge, output_file_path, hist_or_skim=="skim")
+                    stdout, stderr, returncode = ch.merge_files(files_to_merge, output_file_path, hist_or_skim=="skim")
+
+                    if returncode != 0:
+                        logger.error(f"Failed to merge files for task: {args.task} subdir: {subdir}, and group {grouping_label}.")
+
             else:
                 output_file_path = output_directory.split("/")[-2] + ".root"
 
                 logger.debug("Merging files")
-                ch.merge_files(matched_files, output_file_path, hist_or_skim == "skim")
+                stdout, stderr, returncode = ch.merge_files(matched_files, output_file_path, hist_or_skim == "skim")
+
+                if returncode != 0:
+                    logger.error(f"Failed to merge files for task: {args.task} and subdir: {subdir}")
 
 
             # Copy back to EOS space
