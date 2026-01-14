@@ -408,7 +408,7 @@ def main():
         logger.debug("Finding files")
         matched_files: list[str] = ch.find_files(hist_or_skim, output_directory)
 
-        logger.debug("Found files: %s", matched_files)
+        #logger.debug("Found files: %s", matched_files)
 
         if args.group_files:
             grouped_files = ph.group_files(matched_files, ph.group_by_selection)
