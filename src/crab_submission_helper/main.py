@@ -131,7 +131,9 @@ def add_merge_subparser(subparsers, parent):
     parser.add_argument(
         "--cleanup", action="store_true", help="Flag to state you want to delete the intermediate hist and skim files. Use with caution!!!!!"
     )
-
+    parser.add_argument(
+        "--group_files", action="store_true", default=True, help="Flag to state you want to delete the intermediate hist and skim files. Use with caution!!!!!"
+    )
 def build_parser():
     """Construct the top-level parser."""
     # shared base
@@ -413,8 +415,6 @@ def main():
         logger.debug("Finding files")
         for subdir in subdirectories:
             matched_files: list[str] = ch.find_files(hist_or_skim, subdir)
-
-            logger.debug("Found files: %s", matched_files)
 
             if args.group_files:
                 grouped_files = ph.group_files(matched_files, ph.group_by_selection)

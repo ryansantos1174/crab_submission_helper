@@ -10,15 +10,15 @@ NLayers = __NLAYERS__
 if not NLayers:
     # Fake Track Selections
     if selection == "BasicSelection":
-        add_channels  (process,  [basicSelection],                histSets,  weights,  [],  collMap,  variableProducers,  True)
-        add_channels  (process,  [basicSelectionInvertJetMetPhiCut], histSets,  weights,  [],  collMap,  variableProducers,  True, forceNonEmptySkim=True)
+        add_channels  (process,  [basicSelection],                histSets,  weights,  [],  collMap,  variableProducers,  ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+        add_channels  (process,  [basicSelectionInvertJetMetPhiCut], histSets,  weights,  [],  collMap,  variableProducers,  ignoreSkimmedCollections=True, forceNonEmptySkim=True)
 
     if selection == "DisTrkSelection":
-        add_channels  (process,  [disTrkSelectionNoD0CutNHits3],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
-        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits3],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
-        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits4],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
-        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits5],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
-        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits6],  histSets,        weights,  [],  collMap,  variableProducers,  False, forceNonEmptySkim=False, ignoreSkimmedCollections = True)
+        add_channels  (process,  [disTrkSelectionNoD0CutNHits3],  histSets,        weights,  [],  collMap,  variableProducers, forceNonEmptySkim=True, ignoreSkimmedCollections = True)
+        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits3],  histSets,        weights,  [],  collMap,  variableProducers, forceNonEmptySkim=True, ignoreSkimmedCollections = True)
+        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits4],  histSets,        weights,  [],  collMap,  variableProducers, forceNonEmptySkim=True, ignoreSkimmedCollections = True)
+        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits5],  histSets,        weights,  [],  collMap,  variableProducers, forceNonEmptySkim=True, ignoreSkimmedCollections = True)
+        add_channels  (process,  [disTrkSelectionSidebandD0CutNHits6],  histSets,        weights,  [],  collMap,  variableProducers, forceNonEmptySkim=True, ignoreSkimmedCollections = True)
 
     if selection == "ZtoEE":
         add_channels  (process,  [ZtoEE],                           histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers, ignoreSkimmedCollections = True, forceNonEmptySkim=True)
@@ -100,9 +100,9 @@ elif NLayers:
         add_channels  (process,  getNLayersChannelVariations("ZtoTauToMuProbeTrkWithSSFilter"),           histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers + tauToMuonTPProducer, ignoreSkimmedCollections=True)
 
     elif selection == "ZtoTauToEleProbeTrk":
-        add_channels  (process,  getNLayersChannelVariations("ZtoTauToEleProbeTrk"),             histSetsElectron, weightsWithEleSF, scaleFactorProducersWithElectrons, collMap, variableProducers + tauToElectronTPProducer, ignoreSkimmedCollections = False)
-        add_channels  (process,  getNLayersChannelVariations("ZtoTauToEleProbeTrkWithFilter"),   histSetsElectron, weightsWithEleSF, scaleFactorProducersWithElectrons, collMap, variableProducers + tauToElectronTPProducer, ignoreSkimmedCollections = False)
-        add_channels  (process,  getNLayersChannelVariations("ZtoTauToEleProbeTrkWithSSFilter"), histSetsElectron, weightsWithEleSF, scaleFactorProducersWithElectrons, collMap, variableProducers + tauToElectronTPProducer, ignoreSkimmedCollections = False)
+        add_channels  (process,  getNLayersChannelVariations("ZtoTauToEleProbeTrk"),             histSetsElectron, weightsWithEleSF, scaleFactorProducersWithElectrons, collMap, variableProducers + tauToElectronTPProducer, ignoreSkimmedCollections = True)
+        add_channels  (process,  getNLayersChannelVariations("ZtoTauToEleProbeTrkWithFilter"),   histSetsElectron, weightsWithEleSF, scaleFactorProducersWithElectrons, collMap, variableProducers + tauToElectronTPProducer, ignoreSkimmedCollections = True)
+        add_channels  (process,  getNLayersChannelVariations("ZtoTauToEleProbeTrkWithSSFilter"), histSetsElectron, weightsWithEleSF, scaleFactorProducersWithElectrons, collMap, variableProducers + tauToElectronTPProducer, ignoreSkimmedCollections = True)
 
     elif selection == "ElectronTagPt55":
         add_channels  (process,  getNLayersChannelVariations("ElectronTagPt55"),         histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers + electronMETTriggerProducer, ignoreSkimmedCollections = True)

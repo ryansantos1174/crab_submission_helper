@@ -31,6 +31,7 @@ else:
     config.Data.userInputFiles = open(__SKIM_FILE__).readlines()
     config.Data.splitting = "FileBased"
     config.Data.unitsPerJob = 1
+    config.Site.whitelist = ['T3_US_FNALLPC','T2_US_Purdue','T2_CH_CERN','T2_BR_SPRACE','T2_US_Caltech','T2_US_Florida','T2_US_MIT','T2_US_Nebraska','T2_US_UCSD','T2_US_Wisconsin']
 
 
 
