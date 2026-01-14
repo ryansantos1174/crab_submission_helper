@@ -109,7 +109,7 @@ def add_recovery_subparser(subparsers, parent):
 
 def add_merge_subparser(subparsers, parent):
     parser = subparsers.add_parser(
-        "merge", parents=[parent], help="Merge hist or skim files for a crab task"
+        "merge", parents=[parent], help="Merge hist or skim files for a crab task. The file will be named {selection}_{task_name}_{timestamp_dir}.root"
     )
     parser.add_argument(
         "--task",
@@ -120,10 +120,13 @@ def add_merge_subparser(subparsers, parent):
         "--hist", action="store_true", help="Flag to state you want hist files"
     )
     parser.add_argument(
+        "--group_files", action="store_true", help="Flag to state you want to group files based on selection. Usually want this."
+    )
+    parser.add_argument(
         "--skim", action="store_true", help="Flag to state you want skim files"
     )
     parser.add_argument(
-        "--copy", action="store_true", help="Flag to state you want to copy merged file back to EOS"
+        "--copy", action="store_true", help="Flag to state you want to copy merged file back to EOS. The file will be placed in the topmost directory for the selection (ie. one directory above the timestamp directory)."
     )
     parser.add_argument(
         "--cleanup", action="store_true", help="Flag to state you want to delete the intermediate hist and skim files. Use with caution!!!!!"
@@ -395,9 +398,11 @@ def main():
         crab_directory_path = Path(args.directory) / Path(args.task)
         output_directory = ch.get_crab_output_directory(str(crab_directory_path))
 
-        logger.debug("Output directory of task: %s", output_directory)
+        subdirectories = ch.get_eos_subdirectories(output_directory)
 
-        print("Output directory: ", output_directory)
+        logger.debug("Output directory of task: %s", subdirectories)
+
+        print("Output directory: ", subdirectories)
         # TODO Move check up before other crab commands
         if args.hist:
             hist_or_skim = "hist"
@@ -408,34 +413,40 @@ def main():
             return
 
         logger.debug("Finding files")
-        matched_files: list[str] = ch.find_files(hist_or_skim, output_directory)
+        for subdir in subdirectories:
+            matched_files: list[str] = ch.find_files(hist_or_skim, subdir)
 
-        #logger.debug("Found files: %s", matched_files)
+            if args.group_files:
+                grouped_files = ph.group_files(matched_files, ph.group_by_selection)
+                logger.debug("File groupings: %s", list(grouped_files.keys()))
 
-        if args.group_files:
-            grouped_files = ph.group_files(matched_files, ph.group_by_selection)
-            logger.debug("File groupings: %s", list(grouped_files.keys()))
+                for grouping_label, files_to_merge in grouped_files.items():
+                    # TODO: Deal with NLayers where they will have the same selection as the base selection
+                    output_file_path = grouping_label + "_" + str(args.task) +"_" + subdir.rsplit('/', maxsplit=1)[-1] + ".root"
+                    logger.debug("Output file name: %s", output_file_path)
+                    logger.debug("Merging files")
 
-            for grouping_label, files_to_merge in grouped_files.items(): 
-                # TODO: Deal with NLayers where they will have the same selection as the base selection
-                output_file_path = grouping_label + str(args.task) + ".root"
-                logger.debug("Output file name: %s", output_file_path)
+                    stdout, stderr, returncode = ch.merge_files(files_to_merge, output_file_path, hist_or_skim=="skim")
+
+                    if returncode != 0:
+                        logger.error(f"Failed to merge files for task: {args.task} subdir: {subdir}, and group {grouping_label}.")
+
+            else:
+                output_file_path = output_directory.split("/")[-2] + ".root"
+
                 logger.debug("Merging files")
+                stdout, stderr, returncode = ch.merge_files(matched_files, output_file_path, hist_or_skim == "skim")
 
-                ch.merge_files(files_to_merge, output_file_path, hist_or_skim=="skim")
-        else:
-            output_file_path = output_directory.split("/")[-2] + ".root"
-
-            logger.debug("Merging files")
-            ch.merge_files(matched_files, output_file_path, hist_or_skim == "skim")
+                if returncode != 0:
+                    logger.error(f"Failed to merge files for task: {args.task} and subdir: {subdir}")
 
 
-        # Copy back to EOS space
-        if args.copy:
-            ch.copy_to_eos(output_directory, output_file_path) 
-        # Remove unmerged files
-        if args.cleanup:
-            ch.cleanup_intermediate_files(output_directory)
+            # Copy back to EOS space
+            if args.copy:
+                ch.copy_to_eos(output_directory, output_file_path)
+            # Remove unmerged files
+            if args.cleanup:
+                ch.cleanup_intermediate_files(output_directory)
 
         if args.email:
             subject = "Crab Merge"

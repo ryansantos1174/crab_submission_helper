@@ -199,6 +199,59 @@ class CrabHelper():
         # Parse output for LFN
         return match.group(0)
 
+    def get_eos_subdirectories(
+            self,
+            eos_directory:str
+    ) -> list[str]:
+        """
+        Grab sudirectories within a EOS directory.
+
+        This is used to ensure that each timestamped directory is merged separately to avoid
+        accidental duplication of events
+        """
+
+        # Check if eos_directory ends in trailing / otherwise exit
+        if not eos_directory[-1] == '/':
+            logger.error("Trailing / was missing in eos_directory parameter.")
+            return []
+
+        try:
+            output = subprocess.run(
+                f"eosls {eos_directory}",
+                shell = True,
+                capture_output = True,
+                cwd=self.run_directory,
+                text=True,
+                check=True
+            )
+        except subprocess.CalledProcessError as e:
+            logger.error(
+                "Failed to run eosls!"
+                "Command: %s\n"
+                "Return code: %s\n"
+                "----- stdout -----\n%s\n"
+                "----- stderr -----\n%s",
+                e.cmd,
+                e.returncode,
+                (e.stdout or "").strip(),
+                (e.stderr or "").strip(),
+            )
+            return []
+
+        directory_contents = output.stdout.splitlines()
+        logger.info("The contents of directory is %s", directory_contents)
+
+        return [eos_directory + subdir for subdir in directory_contents]
+
+
+
+
+
+
+
+
+
+
 
     def crab_resubmit(
         self,
@@ -385,6 +438,7 @@ class CrabHelper():
                     (e.stdout or "").strip(),
                     (e.stderr or "").strip(),
                 )
+                return e.stdout, e.stderr, e.returncode
             logger.debug(output.args)
             logger.debug(output)
 
