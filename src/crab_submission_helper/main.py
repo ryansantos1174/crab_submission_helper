@@ -120,6 +120,9 @@ def add_merge_subparser(subparsers, parent):
         "--hist", action="store_true", help="Flag to state you want hist files"
     )
     parser.add_argument(
+        "--group_files", action="store_true", help="Flag to state you want to group files based on selection. Usually want this."
+    )
+    parser.add_argument(
         "--skim", action="store_true", help="Flag to state you want skim files"
     )
     parser.add_argument(
