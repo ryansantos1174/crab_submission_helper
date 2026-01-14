@@ -109,7 +109,7 @@ def add_recovery_subparser(subparsers, parent):
 
 def add_merge_subparser(subparsers, parent):
     parser = subparsers.add_parser(
-        "merge", parents=[parent], help="Merge hist or skim files for a crab task"
+        "merge", parents=[parent], help="Merge hist or skim files for a crab task. The file will be named {selection}_{task_name}_{timestamp_dir}.root"
     )
     parser.add_argument(
         "--task",
@@ -123,7 +123,7 @@ def add_merge_subparser(subparsers, parent):
         "--skim", action="store_true", help="Flag to state you want skim files"
     )
     parser.add_argument(
-        "--copy", action="store_true", help="Flag to state you want to copy merged file back to EOS"
+        "--copy", action="store_true", help="Flag to state you want to copy merged file back to EOS. The file will be placed in the topmost directory for the selection (ie. one directory above the timestamp directory)."
     )
     parser.add_argument(
         "--cleanup", action="store_true", help="Flag to state you want to delete the intermediate hist and skim files. Use with caution!!!!!"
