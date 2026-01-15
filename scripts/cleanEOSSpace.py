@@ -72,7 +72,7 @@ def main() -> int:
         parser.print_usage(sys.stderr)
         return 2
 
-    eos = EOSHelper('/store/group/lpclonglived/DisappTrks/')
+    eos = EOSHelper()
 
     for p in paths:
         print(f"Processing: {p}")
