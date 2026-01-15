@@ -47,8 +47,20 @@ class EOSHelper():
         return: List of absolute paths of subdirectories/files
         """
         try: 
+            if self.eos_base_directory:
+                if self.eos_base_directory[-1] != '/':
+                    logger.error("Missing trailing / in eos_base_directory!")
+                    return []
+            else:
+                logger.warning("eos_base_directory has not been set, using absolute paths!")
+                    
+
+            if self.eos_base_directory:
+                path = f"{self.eos_base_directory}{directory}"
+            else:
+                path = f"{directory}"
             process = subprocess.run(
-                f"eos root://cmseos.fnal.gov find --xurl --maxdepth 1 {directory}",
+                f"eos root://cmseos.fnal.gov find --xurl --maxdepth 1 {path}",
                 shell=True,
                 capture_output=True,
                 text=True,
