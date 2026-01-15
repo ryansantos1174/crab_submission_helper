@@ -131,9 +131,6 @@ def add_merge_subparser(subparsers, parent):
     parser.add_argument(
         "--cleanup", action="store_true", help="Flag to state you want to delete the intermediate hist and skim files. Use with caution!!!!!"
     )
-    parser.add_argument(
-        "--group_files", action="store_true", default=True, help="Flag to state you want to delete the intermediate hist and skim files. Use with caution!!!!!"
-    )
 def build_parser():
     """Construct the top-level parser."""
     # shared base
