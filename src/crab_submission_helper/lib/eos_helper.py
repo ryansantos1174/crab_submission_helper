@@ -19,7 +19,9 @@ class EOSHelper():
         process = subprocess.run(
             f"eos root://cmseos.fnal.gov stat -f {file_or_subdir}",
             shell = True,
-            capture_output=False
+            capture_output=False,
+            check
+
         )
 
         return process.returncode == 0
@@ -60,7 +62,7 @@ class EOSHelper():
             else:
                 path = f"{directory}"
             process = subprocess.run(
-                f"eos root://cmseos.fnal.gov find --xurl --maxdepth 1 {path}",
+                f"eos root://cmseos.fnal.gov find --maxdepth 1 {path}",
                 shell=True,
                 capture_output=True,
                 text=True,
