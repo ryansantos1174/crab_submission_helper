@@ -352,7 +352,8 @@ class CrabHelper():
 
         return output.splitlines()
 
-    def merge_files(self, files_to_be_merged:list[str], output_file: str, is_skim_file: bool) -> tuple[str,str,int]:
+    @staticmethod
+    def merge_files(files_to_be_merged:list[str], output_file: str, is_skim_file: bool) -> tuple[str,str,int]:
 
         with tempfile.NamedTemporaryFile(mode="w+", delete=True) as tmp:
             tmp.write("\n".join(files_to_be_merged))
@@ -370,7 +371,6 @@ class CrabHelper():
                     capture_output=True,
                     text=True,
                     check=True,
-                    cwd=self.run_directory
                 )
 
             except subprocess.CalledProcessError as e:
@@ -385,6 +385,7 @@ class CrabHelper():
                     (e.stdout or "").strip(),
                     (e.stderr or "").strip(),
                 )
+                raise e
             logger.debug(output.args)
             logger.debug(output)
 
