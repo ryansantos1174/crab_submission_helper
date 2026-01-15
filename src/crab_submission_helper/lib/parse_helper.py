@@ -174,7 +174,7 @@ def group_files(input_file_list:list[str],
                         returning a dictionary with a key describing the grouping and a value
                         that is a list of the groupings (ex. groupEven([1,2,3,4,5] -> {"odd" :[1,3,5], "even": [2,4]))
     """
-    assert len(input_file_list) > 1, "Not enough input files to group properly!"
+    assert len(input_file_list) > 1, f"Not enough input files to group properly in {input_file_list}!"
     grouped_files: list[list[str]] = matching_function(input_file_list)
     return grouped_files
 
