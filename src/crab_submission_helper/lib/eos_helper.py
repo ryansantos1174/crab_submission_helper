@@ -20,8 +20,7 @@ class EOSHelper():
             f"eos root://cmseos.fnal.gov stat -f {file_or_subdir}",
             shell = True,
             capture_output=False,
-            check
-
+            check=False
         )
 
         return process.returncode == 0
@@ -32,7 +31,8 @@ class EOSHelper():
         process = subprocess.run(
             f"eos root://cmseos.fnal.gov stat -d {file_or_subdir}",
             shell = True,
-            capture_output=False
+            capture_output=False,
+            check=False
         )
 
         return process.returncode == 0
