@@ -78,11 +78,13 @@ elif NLayers:
 
     elif selection == "ZtoEleProbeTrk":
         add_channels  (process,  getNLayersChannelVariations("ZtoEleProbeTrk"),   histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers + electronTPProducer, ignoreSkimmedCollections = True, forceNonEmptySkim=False)
+    elif selection == "ZtoEleProbeTrkFilter": 
         add_channels  (process,  getNLayersChannelVariations("ZtoEleProbeTrkWithFilter"),   histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers + electronTPProducer, ignoreSkimmedCollections = True, forceNonEmptySkim=False)
         add_channels  (process,  getNLayersChannelVariations("ZtoEleProbeTrkWithSSFilter"), histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers + electronTPProducer, ignoreSkimmedCollections = True, forceNonEmptySkim=False)
 
     elif selection == "ZtoMuProbeTrk":
         add_channels  (process,  getNLayersChannelVariations("ZtoMuProbeTrk"),                   histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers + muonTPProducer, ignoreSkimmedCollections = True)
+    elif selection == "ZtoMuProbeTrkFilter":
         add_channels  (process,  getNLayersChannelVariations("ZtoMuProbeTrkWithFilter"),         histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers + muonTPProducer, ignoreSkimmedCollections = True)
         add_channels  (process,  getNLayersChannelVariations("ZtoMuProbeTrkWithSSFilter"),       histSetsMuon,  weightsWithMuonSF,  scaleFactorProducersWithMuons,  collMap,  variableProducers + muonTPProducer, ignoreSkimmedCollections = True)
 
