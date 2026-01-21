@@ -230,6 +230,7 @@ def main():
         finished_job = 0
         failed_job = 0
         unknown_job = 0
+        waiting_job = 0
         for directory in crab_directories:
             logger.debug("Looping over directories")
             statuses: pd.DataFrame = ch.get_crab_status(directory)
@@ -261,6 +262,14 @@ def main():
                 )
                 status = JobStatus.Failed
                 failed_job += 1
+
+            elif (statuses["State"].isin(["unsubmitted", "idle"])).any():
+                logger.info(
+                    "Task has unsubmitted/idle jobs: %s",
+                    str(directory).rsplit("/", maxsplit=1)[-1],
+                )
+                status = JobStatus.Processing
+                waiting_job += 1
 
             elif statuses["State"].isin(["purged", "unknown", "invalid"]).any():
                 logger.info(
@@ -306,7 +315,7 @@ def main():
             subject = "Crab status"
             body = (
                 "The status of your crab jobs has been recieved."
-                f"There are {finished_job} finished tasks, {processing_jobs_status} tasks are still running, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
+                f"There are {finished_job} finished tasks, {processing_jobs_status} tasks are still running, {waiting_job} tasks with jobs unsubmitted/waiting, {failed_jobs_status} tasks with failed jobs, and {unknown_status} tasks with an unknown status."
                 "Please resubmit jobs with the submit command to fix the failed jobs. If the number of failed jobs seems to remain consistent over several resubmits please manually check."
                 "For the jobs with an unknown status, you will probably need to check these jobs manually."
             )
