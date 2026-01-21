@@ -62,7 +62,7 @@ def parse_task_name(task_name:str)-> tuple:
     Especially important for recovery tasks where you may want to submit a task
     but don't want to have to recreate an entry by hand in the yaml file
     """
-    pattern =r"crab_(?P<selection>.*)_(?P<year>\d{4})(?P<era>[A-Z])_?(?P<version>v\d)?_(?P<dataset>NLayers|EGamma\d|Muon\d)"
+    pattern =r"crab_(?P<selection>.*)_(?P<year>\d{4})(?P<era>[A-Z])_?(?P<version>v\d)?_(?P<dataset>NLayers|EGamma\d|Muon\d|JetMET\d)"
     print("Task name: ", task_name)
     print(type(task_name))
     match = re.match(pattern, task_name)
