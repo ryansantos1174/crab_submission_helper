@@ -148,7 +148,7 @@ class CrabHelper():
                 f"crab status --json {task_directory}",
                 shell=True,
                 capture_output=True,
-                cwd=self.run_directory,
+                cwd=self.crab_directory,
                 text=True,
                 check=True
             ).stdout
@@ -165,8 +165,8 @@ class CrabHelper():
                 (e.stderr or "").strip(),
             )
 
-        task_status_dict = parser.status_parser(output)
-        return task_status_dict
+        task_status_df = parser.status_parser(output)
+        return task_status_df
 
 
     def get_crab_output_directory(self,
