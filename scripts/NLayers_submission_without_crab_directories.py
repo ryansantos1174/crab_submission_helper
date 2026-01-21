@@ -2,18 +2,18 @@
 from pathlib import Path
 from crab_submission_helper.lib.crab_helper import CrabHelper
 import crab_submission_helper.lib.parse_helper as ph
-import crab_submission_helper.lib.generator as gen
-from crab_submission_helper.lib.utils import PROJECT_ROOT
+import crab_submission_helper.lib.generators as gen
+from crab_submission_helper.lib.config import PROJECT_ROOT
 import logging
 
-run_directory:Path = Path('')
-crab_directory:Path = Path('')
+run_directory:Path = Path(__file__).parent.parent.parent / "DisappTrks" / "BackgroundEstimation" / "test"
+crab_directory:Path = Path(__file__).parent.parent.parent / "DisappTrks" / "BackgroundEstimation" / "test" / "crab"
 
 batch_file:str= ... # Path to batch_file
 template_directory_path = Path(__file__).parent.parent / "src" / "crab_submission_helper" / "data" / "templates"
 template_config_file = PROJECT_ROOT / "configs" / "templates.yml"
 
-ch = CrabHelper()
+ch = CrabHelper(run_directory=run_directory, crab_directory=crab_directory)
 
 template_files = ph.parse_template_files(
     template_directory_path, run_directory, template_config_file
@@ -40,6 +40,8 @@ def add_skim_files_no_directory(input_values: dict):
     grouped_files: dict[str, list[str]] = ph.group_files(matched_files, ph.group_by_selection)
 
     selection = input_values["SELECTION"]
+    if "Filter" in selection:
+        selection = selection.replace("Filter", "")
 
     skim_file_list = grouped_files[selection]
 
@@ -57,7 +59,7 @@ generating_functions = [
     gen.add_dataset,
     gen.add_request_name,
     gen.add_lumi_mask,
-    ch.add_skim_files_no_directory,
+    add_skim_files_no_directory,
 ]
 
-ch.batch_submit_jobs(batch_file, template_files, test=True)
+ch.batch_submit_jobs(batch_file, template_files, generating_functions=generating_functions)
