@@ -101,12 +101,14 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status, entry,
         return
 
     # Determine whether you are processing NLayers, EGamma/Muon0 or EGamma/Muon1
-    if str(dataset_version) == "0":
+    if "NLayers" in task_name and str(dataset_version) == "0":
+        col_offset = 3
+    elif "NLayers" in task_name and str(dataset_version) == "1":
+        col_offset = 4
+    elif str(dataset_version) == "0":
         col_offset = 1
     elif str(dataset_version) == "1":
         col_offset = 2
-    elif "NLayers" in selection:
-        col_offset = 3
     else:
         logger.error("Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): %s", task_name)
         return
