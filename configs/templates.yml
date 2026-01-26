@@ -1,7 +1,7 @@
 templates:
-  - input: config_cfg_template.py
+  - input: config_cfg_sim_template.py
     output: config_cfg.py
   - input: config_selections_template.py
     output: ../python/config.py
-  - input: crab_template.py
+  - input: crab_sim_template.py
     output: crab_cfg.py

@@ -1,4 +1,6 @@
 # This file relates which dataset each selection should use for processing. The possible values for dataset are Muon, EGamma, or MET
+#
+# Background Estimations and Systematics
 TauTagPt55 = "Muon"
 ZtoTauToMuProbeTrk = "Muon"
 ZtoTauToEleProbeTrk = "EGamma"
@@ -13,3 +15,14 @@ ElectronTagPt55 = "EGamma"
 ZtoEleProbeTrk = "EGamma"
 ZtoMuProbeTrk = "Muon"
 MuonTagPt55 = "Muon"
+
+# Closure Test
+ZtoTauToMuProbeTrkWithZCuts = "DY"
+ZtoTauToMuDisTrkNoNMissOutCut = "DY"
+ZtoTauToEleProbeTrkWithZCuts = "DY"
+ZtoTauToEleDisTrkNoNMissOutCut = "DY"
+TauTagPt55NoJetCuts = "TT"
+TauTagPt55NoJetCutsMetTrig = "TT"
+ElectronTagPt35NoJetCuts = "TT"
+ElectronTagPt35NoJetCutsMetTrig = "TT"
+CandTrkIdTauPt55 = "TT"

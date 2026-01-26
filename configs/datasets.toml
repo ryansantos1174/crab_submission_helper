@@ -155,6 +155,28 @@ dataset="/EGamma1/Run2023D-22Sep2023_v2-v1/MINIAOD"
 [2024]
 lumiMask= "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json"
 
+[2024.SIM.vTau.DY10to50]
+dataset = "/DYto2Tau-4Jets_Bin-MLL-10to50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v2/MINIAODSIM"
+[2024.SIM.vTau.DYgt50]
+dataset = "/DYto2Tau-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v5/MINIAODSIM"
+
+[2024.SIM.vMuon.DY10to50]
+dataset = "/DYto2Mu-4Jets_Bin-MLL-10to50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v2/MINIAODSIM"
+[2024.SIM.vMuon.DYgt50]
+dataset = "/DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v5/MINIAODSIM"
+
+[2024.SIM.vEGamma.DY10to50]
+dataset = "/DYto2E-4Jets_Bin-MLL-10to50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v2/MINIAODSIM"
+[2024.SIM.vEGamma.DYgt50]
+dataset = "/DYto2E-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v5/MINIAODSIM"
+
+[2024.SIM.vTTBar.TTHadronic]
+dataset = "/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v2/MINIAODSIM"
+[2024.SIM.vTTBar.TTDilepton]
+dataset= "/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v3/MINIAODSIM"
+[2024.SIM.vTTBar.TTSemileptonic]
+dataset="/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v2/MINIAODSIM"
+
 [2024.C]
 era="C"
 
@@ -166,7 +188,10 @@ dataset="/Muon0/Run2024C-MINIv6NANOv15-v1/MINIAOD"
 dataset="/EGamma0/Run2024C-MINIv6NANOv15-v1/MINIAOD"
 [2024.C.v1.JetMET0]
 dataset="/JetMET0/Run2024C-MINIv6NANOv15-v1/MINIAOD"
-
+[2024.C.v1.TTBar0]
+dataset="/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v2/MINIAODSIM"
+[2024.C.v1.DY0]
+dataset="/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Winter24MiniAOD-133X_mcRun3_2024_realistic_v9_ext2-v2/MINIAODSIM"
 [2024.C.v1.Tau1]
 dataset="/Muon1/Run2024C-MINIv6NANOv15-v1/MINIAOD"
 [2024.C.v1.Muon1]
@@ -175,6 +200,11 @@ dataset="/Muon1/Run2024C-MINIv6NANOv15-v1/MINIAOD"
 dataset="/EGamma1/Run2024C-MINIv6NANOv15-v1/MINIAOD"
 [2024.C.v1.JetMET1]
 dataset="/JetMET1/Run2024C-MINIv6NANOv15-v1/MINIAOD"
+[2024.C.v1.TTBar1]
+dataset="/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v3/MINIAODSIM"
+
+[2024.C.v1.TTBar2]
+dataset="/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24MiniAODv6-150X_mcRun3_2024_realistic_v2-v2/MINIAODSIM"
 
 [2024.D]
 era="D"
@@ -321,3 +351,30 @@ dataset="/Muon1/Run2024I-MINIv6NANOv15_v2-v1/MINIAOD"
 dataset="/EGamma1/Run2024I-MINIv6NANOv15_v2-v1/MINIAOD"
 [2024.I.v2.JetMET1]
 dataset="/JetMET1/Run2024I-MINIv6NANOv15_v2-v2/MINIAOD"
+
+[2025]
+[2025.C.v1.Muon0]
+dataset="/Muon0/Run2025C-PromptReco-v1/MINIAOD"
+[2025.C.v2.Muon0]
+dataset="/Muon0/Run2025C-PromptReco-v2/MINIAOD"
+[2025.C.v1.EGamma0]
+dataset="/EGamma0/Run2025C-PromptReco-v1/MINIAOD"
+[2025.C.v2.EGamma0]
+dataset="/EGamma0/Run2025C-PromptReco-v2/MINIAOD"
+[2025.C.v1.Muon1]
+dataset="/Muon1/Run2025C-PromptReco-v1/MINIAOD"
+[2025.C.v2.Muon1]
+dataset="/Muon1/Run2025C-PromptReco-v2/MINIAOD"
+[2025.C.v1.EGamma1]
+dataset="/EGamma1/Run2025C-PromptReco-v1/MINIAOD"
+[2025.C.v2.EGamma1]
+dataset="/EGamma1/Run2025C-PromptReco-v2/MINIAOD"
+
+[2025.D.v1.EGamma0]
+dataset="/EGamma0/Run2025D-PromptReco-v1/MINIAOD"
+[2025.D.v1.EGamma1]
+dataset="/EGamma1/Run2025D-PromptReco-v1/MINIAOD"
+[2025.D.v1.Muon0]
+dataset="/Muon0/Run2025D-PromptReco-v1/MINIAOD"
+[2025.D.v1.Muon1]
+dataset="/Muon1/Run2025D-PromptReco-v1/MINIAOD"
