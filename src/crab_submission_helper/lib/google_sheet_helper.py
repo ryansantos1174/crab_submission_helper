@@ -42,8 +42,8 @@ def edit_cell(worksheet, row:int, column:int, value:str, force:bool = False)->No
     case of the need for manual intervention. This option can be overriden with the force
     flag
 
-    Note: The format of the google sheet for data processing is
-    selection, dataset0, dataset1, nlayers, merged
+    Note: The google sheet should have column headers like "Dataset 0", "Dataset 1",
+    "NLayers Dataset 0", etc. to indicate where data should be written.
     """
     if force:
         worksheet.update_cell(row, column, value)
@@ -70,6 +70,26 @@ def find_cell(worksheet, task_name:str)->Optional[tuple[int, ...]]:
         return cell.row, cell.col
 
     return None, None
+
+def find_column_by_header(worksheet, header_name: str) -> Optional[int]:
+    """
+    Find column index by searching the worksheet for a matching header.
+    Returns 1-indexed column number or None if not found.
+    """
+    cell = worksheet.find(header_name)
+    if cell:
+        return cell.col
+    return None
+
+def get_column_header(task_name: str, dataset_version: str) -> str:
+    """
+    Build the expected column header based on task type and dataset version.
+    E.g., "Dataset 0", "Dataset 1", "NLayers Dataset 0", etc.
+    """
+    if "NLayers" in task_name:
+        return f"NLayers Dataset {dataset_version}"
+    else:
+        return f"Dataset {dataset_version}"
 
 def update_task_status(worksheet_ID, credentials_file, task_name, status, entry, force=False)->None:
     """
@@ -100,20 +120,15 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status, entry,
         logger.error("Not able to find selection inside of sheet: %s", selection)
         return
 
-    # Determine whether you are processing NLayers, EGamma/Muon0 or EGamma/Muon1
-    if "NLayers" in task_name and str(dataset_version) == "0":
-        col_offset = 3
-    elif "NLayers" in task_name and str(dataset_version) == "1":
-        col_offset = 4
-    elif str(dataset_version) == "0":
-        col_offset = 1
-    elif str(dataset_version) == "1":
-        col_offset = 2
-    else:
-        logger.error("Unable to verify what dataset version was processed ((Muon|EGamma)0 or NLayers): %s", task_name)
+    # Find the target column by looking up the header name
+    column_header = get_column_header(task_name, dataset_version)
+    target_column = find_column_by_header(worksheet, column_header)
+
+    if target_column is None:
+        logger.error("Unable to find column with header '%s' in worksheet", column_header)
         return
 
-    edit_cell(worksheet, row, column+col_offset, entry, force=force)
+    edit_cell(worksheet, row, target_column, entry, force=force)
 
     # Format cell based off of status
     if status == JobStatus.Finished:
@@ -143,4 +158,4 @@ def update_task_status(worksheet_ID, credentials_file, task_name, status, entry,
         logger.error("Unable to determine status, not formatting cell.")
         return
 
-    format_cell(worksheet, row, column+col_offset, format_dict)
+    format_cell(worksheet, row, target_column, format_dict)
