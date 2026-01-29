@@ -6,11 +6,11 @@ config = config()
 
 NLayers= __NLAYERS__
 request_name = "__REQUEST_NAME__"
-if NLayers: 
+if NLayers:
     config.General.requestName = request_name + "_NLayers"
 else:
-    config.General.requestName = request_name 
-config.General.workArea = "crab"
+    config.General.requestName = request_name
+config.General.workArea = "__CRAB_DIR__"
 config.General.transferOutputs = True
 config.General.transferLogs = True
 

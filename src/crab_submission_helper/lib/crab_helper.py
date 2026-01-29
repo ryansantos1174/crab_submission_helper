@@ -48,7 +48,7 @@ class CrabHelper():
                     gen.add_request_name,
                     gen.add_lumi_mask,
                     self.add_skim_files,
-                    self.add_run_dir_package
+                    self.add_run_and_crab_dirs
                 ]
 
         # Normalize generating_functions to a list
@@ -365,8 +365,8 @@ class CrabHelper():
 
         return {"SKIM_FILE": str(skim_file_path)}
 
-    def add_run_dir_package(self, input_values: dict):
-        return {"RUN_DIR": self.run_directory.parent.name}
+    def add_run_and_crab_dirs(self, input_values: dict):
+        return {"RUN_DIR": self.run_directory.parent.name, "CRAB_DIR": self.crab_directory.name}
 
     def find_files(self, hist_or_skim: str, directory: str)->list[str]:
         hist_pattern = "hist.*.root"
