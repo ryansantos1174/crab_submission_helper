@@ -316,7 +316,7 @@ class CrabHelper():
         TauTagPt55MetTrig inside the output directory this will only return the path to the
         skim file list that contains skim files for TauTagPt55)
         """
-        crab_task = (self.run_directory / "crab" / crab_task)
+        crab_task = (self.run_directory / self.crab_directory / crab_task)
 
         if not crab_task.exists():
             raise FileNotFoundError(f"Unable to find directory: {crab_task.absolute()}")
