@@ -99,7 +99,7 @@ class CrabHelper():
                 # TODO: Probably is a better way to do this instead of looking for a string inside of the dictionary keys.
                 key = next(
                     k for k in template_files
-                    if "crab_template.py" in k.name
+                    if "crab" in k.name
                 )
                 self.submit_crab_job(template_files[key])  # uncomment and implement your submission logic
 
