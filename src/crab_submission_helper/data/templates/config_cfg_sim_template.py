@@ -1,4 +1,4 @@
-from DisappTrks.BackgroundEstimation.config import *
+from DisappTrks.__RUN_DIR__.config import *
 from DisappTrks.StandardAnalysis.customize import *
 
 

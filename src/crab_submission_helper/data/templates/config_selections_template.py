@@ -4,7 +4,7 @@ from DisappTrks.StandardAnalysis.protoConfig_cfg import *
 def getNLayersChannelVariations (chName):
     return [globals()[chName + x] for x in ['NLayers4', 'NLayers5', 'NLayers6plus']]
 
-selection = __SELECTION__
+selection = "__SELECTION__"
 NLayers = __NLAYERS__
 
 if not NLayers:
