@@ -6,6 +6,8 @@ from enum import Enum, auto
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
+MAX_INPUT_FILENAME_LENGTH = 256
+
 class JobStatus(Enum):
     Failed = auto()
     Finished = auto()
