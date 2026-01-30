@@ -48,6 +48,7 @@ class CrabHelper():
                     gen.add_request_name,
                     gen.add_lumi_mask,
                     self.add_skim_files,
+                    self.add_run_and_crab_dirs
                 ]
 
         # Normalize generating_functions to a list
@@ -315,7 +316,7 @@ class CrabHelper():
         TauTagPt55MetTrig inside the output directory this will only return the path to the
         skim file list that contains skim files for TauTagPt55)
         """
-        crab_task = (self.run_directory / "crab" / crab_task)
+        crab_task = (self.run_directory / self.crab_directory / crab_task)
 
         if not crab_task.exists():
             raise FileNotFoundError(f"Unable to find directory: {crab_task.absolute()}")
@@ -364,6 +365,8 @@ class CrabHelper():
 
         return {"SKIM_FILE": str(skim_file_path)}
 
+    def add_run_and_crab_dirs(self, input_values: dict):
+        return {"RUN_DIR": self.run_directory.parent.name, "CRAB_DIR": self.crab_directory.name}
 
     def find_files(self, hist_or_skim: str, directory: str)->list[str]:
         hist_pattern = "hist.*.root"
