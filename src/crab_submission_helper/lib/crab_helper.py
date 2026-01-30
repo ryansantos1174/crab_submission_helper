@@ -97,12 +97,14 @@ class CrabHelper():
             if not test:
                 # Find entry that corresponds to crab configuration file
                 # TODO: Probably is a better way to do this instead of looking for a string inside of the dictionary keys.
-                key = next(
-                    k for k in template_files
-                    if "crab" in k.name
-                )
-                self.submit_crab_job(template_files[key])  # uncomment and implement your submission logic
+                crab_templates = [k for k in template_files if "crab" in k.name]
 
+                if len(crab_templates) == 1:
+                    self.submit_crab_job(template_files[crab_templates[0]])
+                elif len(crab_templates) > 1:
+                    logger.error("More than one crab template file found, skipping submission.")
+                else:
+                    logger.error("No crab template found, skipping submission.")
 
     def submit_crab_job(self, config_file_path: str) -> Optional[str]:
         try:
