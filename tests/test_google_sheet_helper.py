@@ -7,6 +7,8 @@ from lib.google_sheet_helper import (
     find_worksheet,
     edit_cell,
     find_cell,
+    find_column_by_header,
+    get_column_header,
     update_task_status,
 )
 from pathlib import Path
@@ -70,13 +72,33 @@ class TestGoogleSheetHelpers(unittest.TestCase):
         mock_ws.find.return_value = None
         self.assertEqual(find_cell(mock_ws, "taskX"), (None, None))
 
+    def test_find_column_by_header_found(self):
+        mock_ws = MagicMock()
+        mock_ws.find.return_value = MagicMock(col=3)
+        self.assertEqual(find_column_by_header(mock_ws, "Dataset 0"), 3)
+
+    def test_find_column_by_header_not_found(self):
+        mock_ws = MagicMock()
+        mock_ws.find.return_value = None
+        self.assertIsNone(find_column_by_header(mock_ws, "Dataset 99"))
+
+    def test_get_column_header_regular_dataset(self):
+        self.assertEqual(get_column_header("crab_ZtoEleProbeTrk_2024C_v1_EGamma0", "0"), "Dataset 0")
+        self.assertEqual(get_column_header("crab_ZtoEleProbeTrk_2024C_v1_EGamma1", "1"), "Dataset 1")
+        self.assertEqual(get_column_header("crab_ZtoEleProbeTrk_2025C_v1_EGamma3", "3"), "Dataset 3")
+
+    def test_get_column_header_nlayers_dataset(self):
+        self.assertEqual(get_column_header("crab_ZtoEleProbeTrk_NLayers_2024C_v1_EGamma0", "0"), "NLayers Dataset 0")
+        self.assertEqual(get_column_header("crab_ZtoEleProbeTrk_NLayers_2024C_v1_EGamma1", "1"), "NLayers Dataset 1")
+
     @patch("lib.google_sheet_helper.parse_crab_task")
     @patch("lib.google_sheet_helper.setup_google_sheet")
     @patch("lib.google_sheet_helper.find_worksheet")
     @patch("lib.google_sheet_helper.find_cell")
+    @patch("lib.google_sheet_helper.find_column_by_header")
     @patch("lib.google_sheet_helper.edit_cell")
     def test_update_task_status(
-        self, mock_edit, mock_find_cell, mock_find_ws, mock_setup, mock_parse
+        self, mock_edit, mock_find_col, mock_find_cell, mock_find_ws, mock_setup, mock_parse
     ):
         mock_sheet = MagicMock()
         mock_ws = MagicMock()
@@ -85,7 +107,9 @@ class TestGoogleSheetHelpers(unittest.TestCase):
         mock_parse.return_value = ("sel", "2023A", "v1", "0")
         mock_find_ws.return_value = 0
         mock_find_cell.return_value = (5, 1)
+        mock_find_col.return_value = 2  # "Dataset 0" found in column 2
 
-        update_task_status("sheet_id", "creds.json", "crab_task", "DONE")
+        update_task_status("sheet_id", "creds.json", "crab_task", "DONE", "entry_value")
 
-        mock_edit.assert_called_once_with(mock_ws, 5, 2, "DONE", force=False)
+        mock_find_col.assert_called_once_with(mock_ws, "Dataset 0")
+        mock_edit.assert_called_once_with(mock_ws, 5, 2, "entry_value", force=False)
