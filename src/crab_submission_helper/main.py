@@ -101,9 +101,15 @@ def add_recovery_subparser(subparsers, parent):
     )
     parser.add_argument(
         "--crab_task",
-        type=str,
+        type=Path,
         help="Crab task to generate recovery task for",
         required=True,
+    )
+    parser.add_argument(
+        "--recovery_attempt",
+        type=str,
+        help="Recovery attempt currently on, will be appended to end of request_name",
+        required=True
     )
 
 
