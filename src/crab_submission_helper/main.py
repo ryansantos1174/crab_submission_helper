@@ -333,9 +333,9 @@ def main():
     if args.command == "recover":
         # Should only pass a single crab directory don't need to recover every job in crab directory
         # Run crab report to generate necessary lumi files
-        ch.run_crab_report(args.task_path)
+        ch.run_crab_report(args.crab_task)
         # Pass path to crab task
-        lumi_mask = args.task_path / "results" / "failedLumis.json"
+        lumi_mask = args.crab_task / "results" / "failedLumis.json"
         if not lumi_mask.exists():
             logger.error("failedLumis.json does not exist at %s", str(lumi_mask))
 
@@ -343,7 +343,7 @@ def main():
             args.template, args.run_dir, args.template_config_file
         )
 
-        selection, era, version, dataset_version = parse_crab_task(args.task_path)
+        selection, era, version, dataset_version = parse_crab_task(args.crab_task)
 
         job_dict = {"SELECTION": selection,
                     "YEAR": era[:-1],
