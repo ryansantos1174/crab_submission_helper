@@ -332,30 +332,79 @@ def main():
 
     if args.command == "recover":
         # Should only pass a single crab directory don't need to recover every job in crab directory
-        # Parse task name to determine selection, year, era, and NLayers
-        print("Recovery has yet to be implemented! Sorry :'( ")
-        sys.exit(1)
+        # Run crab report to generate necessary lumi files
+        ch.run_crab_report(args.task_path)
+        # Pass path to crab task
+        lumi_mask = args.task_path / "results" / "failedLumis.json"
+        if not lumi_mask.exists():
+            logger.error("failedLumis.json does not exist at %s", str(lumi_mask))
 
-        # selection, year, era, version, dataset  = parse_task_name(args.crab_task)
+        template_files = ph.parse_template_files(
+            args.template, args.run_dir, args.template_config_file
+        )
 
-        # template_files = {
-        #     "config_cfg_template.py": Path(args.run_dir) / "config_cfg.py",
-        #     "crab_template.py" : Path(args.run_dir) / "crab_cfg.py",
-        #     "config_selections_template.py": Path(args.run_dir) / "../python/config.py"
-        # }
+        selection, era, version, dataset_version = parse_crab_task(args.task_path)
 
-        # replace_template_values(template_files, replacement)
-        # ch.submit_crab_job()
-        # args.crab_task
+        job_dict = {"SELECTION": selection,
+                    "YEAR": era[:-1],
+                    "ERA": era[-1],
+                    "ERA_VERSION": version,
+                    "DATASET_VERSION": dataset_version}
 
-        # Run crab recovery command to generate necessary json files
+        generating_functions = [
+            gen.add_dataset,
+            gen.add_request_name,
+            lambda values : {"REQUEST_NAME": values["REQUEST_NAME"] + f"_recovery_v{args.recovery_attempt}"}
+            lambda values : {"LUMIMASK" : str(lumi_mask)}
+            ch.add_run_and_crab_dirs
+        ]
 
-        # Check whether it is an NLayers or not which will tell you whether you need to check the files
-        # or the lumisection to process
+        for func in generating_functions:
+            job_replacements = [
+                gen.generate_template_values(job_dict, func)
+            ]
 
-        # Template file should be nearly identical so that the files get
-        # placed in the same output directory but there needs to be a new
-        # requestName so as to not collide with previous task.
+        timestamp_dir = (
+            conf.PROJECT_ROOT
+            / "src"
+            / "crab_submission_helper"
+            / "data"
+            / "generated"
+            / datetime.datetime.now().strftime("%Y%m%d_%H%M")
+        )
+        timestamp_dir.mkdir(parents=True, exist_ok=True)
+
+        for template_path, output_path in template_files.items():
+            # Save one copy for use in job
+            parser.replace_template_values(
+                template_path, job_dict, save=True, output_file=output_path
+            )
+
+            if not test:
+                # Save another copy for records, including request name in filename
+                request_name = job_dict.get("REQUEST_NAME", "unnamed_request")
+                template_name = Path(template_path).stem
+                template_ext = Path(template_path).suffix
+
+                # Create a unique filename: <template>_<request>.ext
+                outfile_name = f"{template_name}_{request_name}{template_ext}"
+                outfile = timestamp_dir / outfile_name
+
+                parser.replace_template_values(
+                    template_path, job_dict, save=True, output_file=outfile
+                )
+
+        if not test:
+            # Find entry that corresponds to crab configuration file
+            # TODO: Probably is a better way to do this instead of looking for a string inside of the dictionary keys.
+            crab_templates = [k for k in template_files if "crab" in k.name]
+
+            if len(crab_templates) == 1:
+                self.submit_crab_job(template_files[crab_templates[0]])
+            elif len(crab_templates) > 1:
+                logger.error("More than one crab template file found, skipping submission.")
+            else:
+                logger.error("No crab template found, skipping submission.")
 
     if args.command == "resubmit":
         logger.info("Running crab resbumit")
