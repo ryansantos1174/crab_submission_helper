@@ -374,7 +374,9 @@ def main():
                     "YEAR": year,
                     "ERA": era,
                     "ERA_VERSION": version,
-                    "DATASET_VERSION": dataset[-1]}
+                    "DATASET_VERSION": dataset[-1],
+                    "NLAYERS": "NLayers" in args.crab_task.name
+                    }
 
         generating_functions = [
             gen.add_dataset,
@@ -385,7 +387,6 @@ def main():
         ]
 
         for func in generating_functions:
-            print("Job Dict: ", job_dict)
             job_dict = gen.generate_template_values(job_dict, func)
 
         timestamp_dir = (
