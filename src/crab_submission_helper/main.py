@@ -370,7 +370,9 @@ def main():
             logger.error("Failed to parse task name!")
             sys.exit(1) 
         
-        job_dict = {"SELECTION": selection,
+        job_dict = {"CRAB_DIR": str(args.directory),
+                    "RUN_DIR": args.run_dir.name,
+                    "SELECTION": selection,
                     "YEAR": year,
                     "ERA": era,
                     "ERA_VERSION": version,
