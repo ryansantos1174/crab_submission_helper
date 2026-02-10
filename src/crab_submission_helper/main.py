@@ -364,8 +364,12 @@ def main():
             args.template, args.run_dir, args.template_config_file
         )
 
-        selection, era, version, dataset_version = parser.parse_crab_task(args.crab_task)
+        selection, era, version, dataset_version = ph.parse_crab_task(args.crab_task)
 
+        if selection is None:
+            logger.error("Failed to parse task name!")
+            sys.exit(1) 
+        
         job_dict = {"SELECTION": selection,
                     "YEAR": era[:-1],
                     "ERA": era[-1],
