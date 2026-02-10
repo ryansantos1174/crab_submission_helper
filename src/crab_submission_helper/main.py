@@ -385,6 +385,7 @@ def main():
         ]
 
         for func in generating_functions:
+            print(job_dict)
             gen.generate_template_values(job_dict, func)
 
         timestamp_dir = (
