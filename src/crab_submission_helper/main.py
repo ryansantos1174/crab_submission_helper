@@ -374,10 +374,10 @@ def main():
                     "YEAR": year,
                     "ERA": era,
                     "ERA_VERSION": version,
+                    "DATASET": dataset[:-1]
                     "DATASET_VERSION": dataset[-1]}
 
         generating_functions = [
-            gen.add_dataset,
             gen.add_request_name,
             lambda values : {"REQUEST_NAME": values["REQUEST_NAME"] + f"_recovery_v{args.recovery_attempt}"},
             lambda values : {"LUMIMASK" : str(lumi_mask)},
