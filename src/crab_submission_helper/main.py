@@ -400,7 +400,7 @@ def main():
 
         for template_path, output_path in template_files.items():
             # Save one copy for use in job
-            parser.replace_template_values(
+            ph.replace_template_values(
                 template_path, job_dict, save=True, output_file=output_path
             )
 
@@ -413,7 +413,7 @@ def main():
             outfile_name = f"{template_name}_{request_name}{template_ext}"
             outfile = timestamp_dir / outfile_name
 
-            parser.replace_template_values(
+            ph.replace_template_values(
                 template_path, job_dict, save=True, output_file=outfile
             )
 
