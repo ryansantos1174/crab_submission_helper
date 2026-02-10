@@ -356,7 +356,7 @@ def main():
         # Run crab report to generate necessary lumi files
         ch.run_crab_report(args.crab_task)
         # Pass path to crab task
-        lumi_mask = args.crab_task / "results" / "failedLumis.json"
+        lumi_mask = args.crab_task / "results" / "notFinishedLumis.json"
         if not lumi_mask.exists():
             logger.error("failedLumis.json does not exist at %s", str(lumi_mask))
 
@@ -364,17 +364,17 @@ def main():
             args.template, args.run_dir, args.template_config_file
         )
 
-        selection, era, version, dataset_version = ph.parse_crab_task(str(args.crab_task))
+        selection, year, era, version, dataset = ph.parse_task_name(str(args.crab_task))
 
         if selection is None:
             logger.error("Failed to parse task name!")
             sys.exit(1) 
         
         job_dict = {"SELECTION": selection,
-                    "YEAR": era[:-1],
-                    "ERA": era[-1],
+                    "YEAR": year,
+                    "ERA": era,
                     "ERA_VERSION": version,
-                    "DATASET_VERSION": dataset_version}
+                    "DATASET_VERSION": dataset[-1]}
 
         generating_functions = [
             gen.add_dataset,
