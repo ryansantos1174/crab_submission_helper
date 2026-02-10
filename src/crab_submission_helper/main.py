@@ -4,7 +4,9 @@ import logging
 import os
 import sys
 import time
+import datetime
 from pathlib import Path
+
 
 from dotenv import load_dotenv
 from gspread.exceptions import APIError
@@ -13,6 +15,8 @@ import pandas as pd
 from .lib.crab_helper import CrabHelper
 from .lib import google_sheet_helper as gsh
 from .lib import parse_helper as ph
+from .lib import generators as gen
+from .lib import config as conf
 from .lib.notifications import send_ntfy_notification, send_email
 from .lib.config import JobStatus, PROJECT_ROOT
 
@@ -98,6 +102,17 @@ def add_recovery_subparser(subparsers, parent):
         "recover",
         parents=[parent],
         help="Create a recovery task for for the given crab task",
+    )
+    parser.add_argument(
+        "--template",
+        type=str,
+        default=Path(__file__).parent / "data" / "templates",
+        help="Path to template directory",
+    )
+    parser.add_argument(
+        "--template_config_file",
+        type=Path,
+        default=PROJECT_ROOT / "configs" / "templates.yml",
     )
     parser.add_argument(
         "--crab_task",
@@ -349,7 +364,7 @@ def main():
             args.template, args.run_dir, args.template_config_file
         )
 
-        selection, era, version, dataset_version = parse_crab_task(args.crab_task)
+        selection, era, version, dataset_version = parser.parse_crab_task(args.crab_task)
 
         job_dict = {"SELECTION": selection,
                     "YEAR": era[:-1],
@@ -366,9 +381,7 @@ def main():
         ]
 
         for func in generating_functions:
-            job_replacements = [
-                gen.generate_template_values(job_dict, func)
-            ]
+            gen.generate_template_values(job_dict, func)
 
         timestamp_dir = (
             conf.PROJECT_ROOT
@@ -386,31 +399,29 @@ def main():
                 template_path, job_dict, save=True, output_file=output_path
             )
 
-            if not test:
-                # Save another copy for records, including request name in filename
-                request_name = job_dict.get("REQUEST_NAME", "unnamed_request")
-                template_name = Path(template_path).stem
-                template_ext = Path(template_path).suffix
+            # Save another copy for records, including request name in filename
+            request_name = job_dict.get("REQUEST_NAME", "unnamed_request")
+            template_name = Path(template_path).stem
+            template_ext = Path(template_path).suffix
 
-                # Create a unique filename: <template>_<request>.ext
-                outfile_name = f"{template_name}_{request_name}{template_ext}"
-                outfile = timestamp_dir / outfile_name
+            # Create a unique filename: <template>_<request>.ext
+            outfile_name = f"{template_name}_{request_name}{template_ext}"
+            outfile = timestamp_dir / outfile_name
 
-                parser.replace_template_values(
-                    template_path, job_dict, save=True, output_file=outfile
-                )
+            parser.replace_template_values(
+                template_path, job_dict, save=True, output_file=outfile
+            )
 
-        if not test:
-            # Find entry that corresponds to crab configuration file
-            # TODO: Probably is a better way to do this instead of looking for a string inside of the dictionary keys.
-            crab_templates = [k for k in template_files if "crab" in k.name]
+        # Find entry that corresponds to crab configuration file
+        # TODO: Probably is a better way to do this instead of looking for a string inside of the dictionary keys.
+        crab_templates = [k for k in template_files if "crab" in k.name]
 
-            if len(crab_templates) == 1:
-                self.submit_crab_job(template_files[crab_templates[0]])
-            elif len(crab_templates) > 1:
-                logger.error("More than one crab template file found, skipping submission.")
-            else:
-                logger.error("No crab template found, skipping submission.")
+        if len(crab_templates) == 1:
+            ch.submit_crab_job(template_files[crab_templates[0]])
+        elif len(crab_templates) > 1:
+            logger.error("More than one crab template file found, skipping submission.")
+        else:
+            logger.error("No crab template found, skipping submission.")
 
     if args.command == "resubmit":
         logger.info("Running crab resbumit")
