@@ -386,7 +386,7 @@ def main():
 
         for func in generating_functions:
             print("Job Dict: ", job_dict)
-            gen.generate_template_values(job_dict, func)
+            job_dict = gen.generate_template_values(job_dict, func)
 
         timestamp_dir = (
             conf.PROJECT_ROOT
