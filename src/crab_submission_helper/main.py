@@ -364,7 +364,7 @@ def main():
             args.template, args.run_dir, args.template_config_file
         )
 
-        selection, year, era, version, dataset = ph.parse_task_name(str(args.crab_task))
+        selection, year, era, version, dataset = ph.parse_task_name(args.crab_task.name)
 
         if selection is None:
             logger.error("Failed to parse task name!")
