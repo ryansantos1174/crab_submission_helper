@@ -374,7 +374,7 @@ def main():
                     "YEAR": year,
                     "ERA": era,
                     "ERA_VERSION": version,
-                    "DATASET": dataset[:-1]
+                    "DATASET": dataset[:-1],
                     "DATASET_VERSION": dataset[-1]}
 
         generating_functions = [
