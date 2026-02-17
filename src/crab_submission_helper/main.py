@@ -81,7 +81,7 @@ def add_resubmit_subparser(subparsers, parent):
         "resubmit", parents=[parent], help="Resubmit CRAB jobs"
     )
     parser.add_argument("--maxmemory", type=int, help="Override max memory for jobs")
-    parser.add_argument("--siteblacklist", nargs="+", help="Sites to exclude")
+    parser.add_argument("--siteblacklist", nargs="+", help="Sites to exclude", default=[None])
     parser.add_argument("--sitewhitelist", nargs="+", help="Sites to prefer")
     return parser
 
@@ -370,7 +370,7 @@ def main():
             # without affecting all submissions
             return_code, command = ch.crab_resubmit(
                 str(directory),
-                resubmit_options={"maxmemory": 4000},
+                resubmit_options={"maxmemory": 4000, "blacklist": args.siteblacklist, "whitelist": args.sitewhitelist},
             )
 
             logger.debug("Ran crab command: %s", command)
