@@ -20,8 +20,14 @@ dependencies = [
     "python-dotenv",
     "google==3.0.0",
     "gspread==6.2.1",
-    "numpy==2.0.2",
+
+    # NumPy 2 breaks older compiled wheels (like CMSSW's numexpr)
+    "numpy<2",
     "pandas==2.3.3",
+
+    # Make sure you have a compatible numexpr in your environment
+    "numexpr<2.10",
+
     "PyYAML==6.0.3",
     "tomli==2.3.0",
 ]

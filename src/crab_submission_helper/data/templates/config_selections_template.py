@@ -8,6 +8,30 @@ selection = "__SELECTION__"
 NLayers = __NLAYERS__
 
 if not NLayers:
+    if selection == "TauTagSkim":
+        add_channels(process, [TauTagSkim], histSetsTau, weights, scaleFactorProducers, collMap, variableProducers, ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "MuonTagSkim":
+        add_channels(process, [MuonTagSkim], histSetsMuon, weightsWithMuonSF, scaleFactorProducersWithMuons, collMap, variableProducers, ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "ElectronTagSkim":
+        add_channels(process, [ElectronTagSkim], histSetsElectron, weightsWithEleSF, scaleFactorProducersWithElectrons, collMap, variableProducers, ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    # Closure Test Selections
+    if selection == "ZtoTauToMuProbeTrkWithZCuts":
+        add_channels(process, [ZtoTauToMuProbeTrkWithZCuts], histSetsMuon, weightsWithMuonSF, scaleFactorProducersWithMuons, collMap, variableProducers, ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "ZtoTauToMuDisTrkNoNMissOutCut":
+        add_channels(process, [ZtoTauToMuDisTrkNoNMissOutCut], histSetsMuon, weightsWithMuonSF, scaleFactorProducersWithMuons, collMap, variableProducers, ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "ZtoTauToEleProbeTrkWithZCuts":
+        add_channels(process, [ZtoTauToEleProbeTrkWithZCuts], histSetsElectron, weightsWithEleSF, scaleFactorProducersElectrons, collMap, variableProducers, ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "ZtoTauToEleDisTrkNoNMissOutCut":
+        add_channels(process, [ZtoTauToEleDisTrkNoNMissOutCut], histSetsElectron, weightsWithEleSF, scaleFactorProducersElectrons, collMap, variableProducers, ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "TauTagPt55NoJetCuts":
+        add_channels(process, [TauTagPt55NoJetCuts], histSetsTau, weights, scaleFactorProducers, collMap, variableProducers, ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "ElectronTagPt35NoJetCuts":
+        add_channels  (process,  [ElectronTagPt35NoJetCuts],         histSetsElectron,  weightsWithEleSF,  scaleFactorProducersWithElectrons,  collMap,  variableProducers,  ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "CandTrkIdTauPt55":
+        add_channels(process,  [candTrkIdTauPt55],       histSets,  weights,  [],  collMap,  variableProducers,  ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+    if selection == "CandTrkIdElecPt35":
+        add_channels  (process,  [candTrkIdElecPt35],       histSets,  weights,  [],  collMap,  variableProducers,  ignoreSkimmedCollections=True, forceNonEmptySkim=True)
+
     # Fake Track Selections
     if selection == "BasicSelection":
         add_channels  (process,  [basicSelection],                histSets,  weights,  [],  collMap,  variableProducers,  ignoreSkimmedCollections=True, forceNonEmptySkim=True)

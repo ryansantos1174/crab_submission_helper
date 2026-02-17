@@ -145,6 +145,18 @@ class CrabHelper():
                 (e.stderr or "").strip(),
             )
 
+    def run_crab_report(self, task_directory:str) -> None:
+        try:
+            subprocess.run(
+                f"crab report {task_directory}",
+                shell=True,
+                capture_output=False,
+                cwd=self.crab_directory,
+                check=True
+            )
+        except subprocess.CalledProcessError as e:
+            logger.error("Running Crab Report Failed")
+
     def get_crab_status(self, task_directory: str) -> dict:
         try:
             output = subprocess.run(
