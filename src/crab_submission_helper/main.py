@@ -368,9 +368,16 @@ def main():
         for directory in crab_directories:
             # TODO: Implement way to apply resubmission criteria like maxmemory or siteblacklist
             # without affecting all submissions
+
+            # Format siteblacklist and whitelist to pass to commandline.
+            if args.siteblacklist:
+                blacklist = ",".join(args.siteblacklist)
+            if args.sitewhitelist:
+                whitelist = ",".join(args.sitewhitelist)
+
             return_code, command = ch.crab_resubmit(
                 str(directory),
-                resubmit_options={"maxmemory": 4000, "blacklist": args.siteblacklist, "whitelist": args.sitewhitelist},
+                resubmit_options={"maxmemory": 4000, "blacklist": blacklist, "whitelist": whitelist},
             )
 
             logger.debug("Ran crab command: %s", command)

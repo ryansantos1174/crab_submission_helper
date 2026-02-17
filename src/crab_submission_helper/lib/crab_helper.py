@@ -265,27 +265,10 @@ class CrabHelper():
         crab_command = ["crab", "resubmit", "-d", task_directory]
 
         # Add optional flags
-        if resubmit_options:
-            if "maxmemory" in resubmit_options:
-                crab_command += [f"--maxmemory={resubmit_options['maxmemory']}"]
-            if "siteblacklist" in resubmit_options:
-                crab_command += [
-                    "--siteblacklist=",
-                    (
-                        ",".join(resubmit_options["siteblacklist"])
-                        if isinstance(resubmit_options["siteblacklist"], list)
-                        else str(resubmit_options["siteblacklist"])
-                    ),
-                ]
-            if "sitewhitelist" in resubmit_options:
-                crab_command += [
-                    "--sitewhitelist=",
-                    (
-                        ",".join(resubmit_options["sitewhitelist"])
-                        if isinstance(resubmit_options["sitewhitelist"], list)
-                        else str(resubmit_options["sitewhitelist"])
-                    ),
-                ]
+        for key, option in resubmit_options.items():
+            # Check that the value is not None
+            if option:
+                crab_command += [f"--{key}={option}"]
 
         # Run the command
         result = subprocess.run(
