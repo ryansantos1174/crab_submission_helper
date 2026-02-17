@@ -442,9 +442,27 @@ def main():
         for directory in crab_directories:
             # TODO: Implement way to apply resubmission criteria like maxmemory or siteblacklist
             # without affecting all submissions
+<<<<<<< Updated upstream
             return_code, command = ch.crab_resubmit(
                 str(directory),
                 resubmit_options={"maxmemory": 4000},
+=======
+
+            # Format siteblacklist and whitelist to pass to commandline.
+            blacklist = None
+            whitelist = None
+            if args.siteblacklist:
+                print(args.siteblacklist)
+                blacklist = ",".join(args.siteblacklist)
+            if args.sitewhitelist:
+                whitelist = ",".join(args.sitewhitelist)
+            print(blacklist)
+
+            # The dictionary keys need to match up with the options in crab resubmit
+            return_code, command = ch.crab_resubmit(
+                str(directory),
+                resubmit_options={"maxmemory": 4000, "siteblacklist": blacklist, "sitewhitelist": whitelist},
+>>>>>>> Stashed changes
             )
 
             logger.debug("Ran crab command: %s", command)
