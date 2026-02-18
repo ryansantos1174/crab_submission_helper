@@ -368,8 +368,8 @@ def main():
 
         if selection is None:
             logger.error("Failed to parse task name!")
-            sys.exit(1) 
-        
+            sys.exit(1)
+
         job_dict = {"CRAB_DIR": str(args.directory),
                     "RUN_DIR": args.run_dir.name,
                     "SELECTION": selection,
