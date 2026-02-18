@@ -7,8 +7,9 @@ config = config()
 
 NLayers= __NLAYERS__
 request_name = "__REQUEST_NAME__"
+
 if NLayers:
-    config.General.requestName = request_name + "_NLayers"
+    request_name += "_NLayers"
 
 config.General.requestName = request_name
 
