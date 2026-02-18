@@ -149,7 +149,7 @@ def parse_crab_task(task_name:str)->Optional[tuple[str,...]]:
     task = task_name.split("/")[-1]
     # Get rid of "crab_" at the beginning of file path
     task = "_".join(task.split("_")[1:])
-    match = re.search(r'([a-zA-Z]*\d*)_(\d{4}[A-Z])_(v\d)_(?:Muon|EGamma)(\d)', task)
+    match = re.search(r'([a-zA-Z]*\d*)_(\d{4}[A-Z])_(v\d)_(?:Muon|EGamma|JetMET)(\d)', task)
     if match:
         selection = match.group(1)
         era = match.group(2)  # '2023C'
