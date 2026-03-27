@@ -275,6 +275,9 @@ class CrabHelper():
             crab_command, capture_output=True, text=True, cwd=self.run_directory, check=False
         )
 
+        if result.returncode != 0:
+            print(result.stderr)
+
         return result.returncode, result.args
 
 
