@@ -287,6 +287,9 @@ class CrabHelper():
             crab_command, capture_output=True, text=True, cwd=self.run_directory, check=False
         )
 
+        if result.returncode != 0:
+            print(result.stderr)
+
         return result.returncode, result.args
 
 
@@ -364,6 +367,25 @@ class CrabHelper():
 
     def add_run_and_crab_dirs(self, input_values: dict):
         return {"RUN_DIR": self.run_directory.parent.name, "CRAB_DIR": self.crab_directory.name}
+
+    def check_jobs_have_hist_files(self, job_ids: list[str], output_directory: str) -> dict[str, bool]:
+        """
+        For a list of CRAB job IDs, check whether a hist file exists for each job in the
+        EOS output directory. Hist filenames are expected to end with _{job_id}.root
+        (e.g. hist_TauTagPt55_2026_01_03_23h00m28s_994.root for job 994).
+
+        Returns a dict mapping job_id (str) -> bool (True if hist file was found).
+        """
+        hist_files = self.find_files("hist", output_directory)
+
+        found_job_ids: set[str] = set()
+        for f in hist_files:
+            filename = f.rsplit("/", 1)[-1]
+            match = re.search(r"_(\d+)\.root$", filename)
+            if match:
+                found_job_ids.add(match.group(1))
+
+        return {str(job_id): str(job_id) in found_job_ids for job_id in job_ids}
 
     def find_files(self, hist_or_skim: str, directory: str)->list[str]:
         hist_pattern = "hist.*.root"

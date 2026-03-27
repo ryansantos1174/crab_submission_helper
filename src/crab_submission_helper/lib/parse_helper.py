@@ -20,6 +20,9 @@ def status_parser(crab_status_output: str) -> pd.DataFrame:
     """
     # These error codes mean job is taking up too much resources and a resubmit is unlikely to fix the issue
     UNRECOVERABLE_EXIT_CODES = {50660, 50661, 50662}
+    # Error codes in this range are staging-out (output transfer) failures; the job itself ran successfully
+    STAGING_ERROR_MIN = 60000
+    STAGING_ERROR_MAX = 69999
     output = crab_status_output.strip()
 
     # Look for json object boundaries
@@ -48,10 +51,16 @@ def status_parser(crab_status_output: str) -> pd.DataFrame:
     # Flag jobs with more than 5 retries
     df["TooManyRetries"] = df["Retries"] > 5
 
-    if "Error" in df.columns: 
+    if "Error" in df.columns:
         df["HasUnrecoverableError"] = df["Error"].apply(
             lambda x: x[0] in UNRECOVERABLE_EXIT_CODES if isinstance(x, list) and x else False
         )
+        df["HasStagingError"] = df["Error"].apply(
+            lambda x: isinstance(x, list) and x and STAGING_ERROR_MIN <= x[0] <= STAGING_ERROR_MAX
+        )
+    else:
+        df["HasUnrecoverableError"] = False
+        df["HasStagingError"] = False
 
     return df
 

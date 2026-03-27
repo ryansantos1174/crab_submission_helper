@@ -171,6 +171,51 @@ def build_parser():
     return parser
 
 
+def _check_recoverable(statuses: pd.DataFrame, ch: CrabHelper, output_directory: str,
+                        directory, logger) -> bool:
+    """
+    Return True if every non-finished job is stuck in postprocessing or failed with a
+    staging-out error (60000-69999) AND a hist file exists for each such job.
+
+    These jobs ran successfully but the output-transfer step failed, so the hist files
+    are already on EOS and the job can be treated as done.
+    """
+    staging_mask = statuses["State"] == "postprocessing"
+    if "HasStagingError" in statuses.columns:
+        staging_mask |= (statuses["State"] == "failed") & statuses["HasStagingError"]
+
+    # All jobs must be either genuinely finished or in a recoverable staging state
+    effectively_done = (statuses["State"] == "finished") | staging_mask
+    if not effectively_done.all() or not staging_mask.any():
+        return False
+
+    if output_directory == "Not Found!":
+        logger.warning(
+            "Task %s has postprocessing/staging-error jobs but output directory could not be determined",
+            str(directory).rsplit("/", maxsplit=1)[-1],
+        )
+        return False
+
+    problematic_ids = statuses.loc[staging_mask, "job_id"].tolist()
+    hist_check = ch.check_jobs_have_hist_files(problematic_ids, output_directory)
+
+    missing = [jid for jid, found in hist_check.items() if not found]
+    if missing:
+        logger.warning(
+            "Task %s: postprocessing/staging-error jobs missing hist files: %s",
+            str(directory).rsplit("/", maxsplit=1)[-1],
+            missing,
+        )
+        return False
+
+    logger.info(
+        "Task %s: all %d postprocessing/staging-error jobs have hist files — treating as finished",
+        str(directory).rsplit("/", maxsplit=1)[-1],
+        len(problematic_ids),
+    )
+    return True
+
+
 def main():
     parser = build_parser()
     args = parser.parse_args()
@@ -262,6 +307,10 @@ def main():
                 logger.info(
                     "Task %s finished", str(directory).rsplit("/", maxsplit=1)[-1]
                 )
+                status = JobStatus.Finished
+                finished_job += 1
+
+            elif _check_recoverable(statuses, ch, output_directory, directory, logger):
                 status = JobStatus.Finished
                 finished_job += 1
 
