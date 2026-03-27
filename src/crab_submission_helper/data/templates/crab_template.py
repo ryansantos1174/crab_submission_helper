@@ -1,15 +1,22 @@
 
 #!/usr/bin/env python3
 import os
+import re
 from CRABClient.UserUtilities import config
 config = config()
 
 NLayers= __NLAYERS__
 request_name = "__REQUEST_NAME__"
+
 if NLayers:
-    config.General.requestName = request_name + "_NLayers"
-else:
-    config.General.requestName = request_name
+    request_name += "_NLayers"
+
+config.General.requestName = request_name
+
+# This prevents recovery jobs from going in a different eos directory
+if "recovery" in request_name:
+    request_name = re.sub(r"_recovery_v\d+$", "", request_name)
+
 config.General.workArea = "__CRAB_DIR__"
 config.General.transferOutputs = True
 config.General.transferLogs = True

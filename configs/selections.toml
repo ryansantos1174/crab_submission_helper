@@ -16,6 +16,9 @@ ZtoEleProbeTrk = "EGamma"
 ZtoEleProbeTrkFilter = "EGamma"
 ZtoMuProbeTrk = "Muon"
 MuonTagPt55 = "Muon"
+TauTagSkim="Muon"
+MuonTagSkim="Muon"
+ElectronTagSkim="EGamma"
 
 # Closure Test
 ZtoTauToMuProbeTrkWithZCuts = "DY"
